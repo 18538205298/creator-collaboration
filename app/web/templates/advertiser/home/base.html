@@ -1,0 +1,41 @@
+{% extends "advertiser/base.html" %}
+
+{% block title %}广告主 - 首页{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/advertiser/home/style.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+<h2>广告主首页</h2>
+
+<!-- 横向导航栏 -->
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'overview' %}active{% endif %}" href="{{ url_for('advertiser.home_overview') }}">
+            <i class="bi bi-bar-chart"></i> 数据概览
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'recommended' %}active{% endif %}" href="{{ url_for('advertiser.home_recommended') }}">
+            <i class="bi bi-people"></i> 推荐合作者
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'notifications' %}active{% endif %}" href="{{ url_for('advertiser.home_notifications') }}">
+            <i class="bi bi-bell"></i> 平台通知
+        </a>
+    </li>
+</ul>
+
+<!-- 内容区块 -->
+<div class="home-content">
+    {% block home_content %}
+    <!-- 默认内容 -->
+    <div class="alert alert-info">
+        请从上方选择您要查看的内容
+    </div>
+    {% endblock %}
+</div>
+{% endblock %}

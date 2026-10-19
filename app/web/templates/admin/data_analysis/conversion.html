@@ -1,0 +1,375 @@
+{% extends "admin/data_analysis/base.html" %}
+
+{% block title %}管理员 - 转化率分析{% endblock %}
+
+{% set active_tab = 'conversion' %}
+
+{% block tab_content %}
+<div class="container-fluid px-4 py-3">
+    <!-- 顶部概览卡片 -->
+    <div class="row mb-4">
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="profile-inner-card">
+                <div class="profile-inner-card-header">
+                    <div class="profile-inner-card-icon" style="background: linear-gradient(135deg, #4b6cb7, #182848);">
+                        <i class="bi bi-eye"></i>
+                    </div>
+                    <h5 class="profile-inner-card-title">浏览转化率</h5>
+                </div>
+                <div class="profile-inner-card-content">
+                    <div class="profile-stat-value" id="view-to-application-rate">0%</div>
+                    <div class="profile-stat-label">浏览到申请</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="profile-inner-card">
+                <div class="profile-inner-card-header">
+                    <div class="profile-inner-card-icon" style="background: linear-gradient(135deg, #11998e, #38ef7d);">
+                        <i class="bi bi-hand-thumbs-up"></i>
+                    </div>
+                    <h5 class="profile-inner-card-title">申请转化率</h5>
+                </div>
+                <div class="profile-inner-card-content">
+                    <div class="profile-stat-value" id="application-to-collaboration-rate">0%</div>
+                    <div class="profile-stat-label">申请到合作</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="profile-inner-card">
+                <div class="profile-inner-card-header">
+                    <div class="profile-inner-card-icon" style="background: linear-gradient(135deg, #fc5c7d, #6a82fb);">
+                        <i class="bi bi-diagram-3"></i>
+                    </div>
+                    <h5 class="profile-inner-card-title">整体转化率</h5>
+                </div>
+                <div class="profile-inner-card-content">
+                    <div class="profile-stat-value" id="overall-conversion-rate">0%</div>
+                    <div class="profile-stat-label">发布到完成</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="profile-inner-card">
+                <div class="profile-inner-card-header">
+                    <div class="profile-inner-card-icon" style="background: linear-gradient(135deg, #f857a6, #ff5858);">
+                        <i class="bi bi-layers"></i>
+                    </div>
+                    <h5 class="profile-inner-card-title">转化漏斗比例</h5>
+                </div>
+                <div class="profile-inner-card-content">
+                    <div class="profile-stat-value" id="funnel-ratio">0:0:0</div>
+                    <div class="profile-stat-label">浏览:申请:完成</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- 左侧图表 - 转化率趋势 -->
+        <div class="col-lg-6 mb-4">
+            <div class="profile-info-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>转化率趋势</span>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-light active" data-period="6">近6个月</button>
+                        <button type="button" class="btn btn-outline-light" data-period="12">近1年</button>
+                    </div>
+                </div>
+                <div class="card-body" style="height: 400px; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="conversion-trend-chart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右侧图表 - 转化漏斗 -->
+        <div class="col-lg-6 mb-4">
+            <div class="profile-info-card">
+                <div class="card-header">
+                    <span>转化漏斗</span>
+                </div>
+                <div class="card-body" style="height: 400px; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="conversion-funnel-chart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        console.log('开始加载转化率数据分析页面');
+        
+        // 获取转化率统计数据
+        console.log('请求转化率统计数据: /admin/api/conversion/stats');
+        const statsResponse = await fetch('/admin/api/conversion/stats');
+        if (!statsResponse.ok) {
+            throw new Error(`统计数据请求失败: ${statsResponse.status} ${statsResponse.statusText}`);
+        }
+        const statsData = await statsResponse.json();
+        console.log('转化率统计数据:', statsData);
+        
+        if (statsData.success) {
+            // 更新顶部统计卡片
+            updateStatsCards(statsData.data);
+            // 生成转化漏斗图表
+            generateConversionFunnelChart(statsData.data);
+        }
+        
+        // 获取转化率趋势数据
+        console.log('请求转化率趋势数据: /admin/api/conversion/trend?months=6');
+        const trendResponse = await fetch('/admin/api/conversion/trend?months=6');
+        if (!trendResponse.ok) {
+            throw new Error(`趋势数据请求失败: ${trendResponse.status} ${trendResponse.statusText}`);
+        }
+        const trendData = await trendResponse.json();
+        console.log('转化率趋势数据:', trendData);
+        
+        if (trendData.success) {
+            // 生成趋势图表
+            generateConversionTrendChart(trendData.data);
+        }
+        
+        // 注册按钮事件 - 转化率趋势时间范围切换
+        document.querySelectorAll('[data-period]').forEach(button => {
+            button.addEventListener('click', async function() {
+                const period = parseInt(this.getAttribute('data-period'));
+                // 先移除所有的active类
+                document.querySelectorAll('[data-period]').forEach(btn => btn.classList.remove('active'));
+                // 为当前按钮添加active类
+                this.classList.add('active');
+                
+                // 获取并更新图表
+                console.log(`请求转化率趋势数据: /admin/api/conversion/trend?months=${period}`);
+                try {
+                    const response = await fetch(`/admin/api/conversion/trend?months=${period}`);
+                    if (!response.ok) {
+                        throw new Error(`趋势数据请求失败: ${response.status} ${response.statusText}`);
+                    }
+                    const data = await response.json();
+                    console.log('转化率趋势数据:', data);
+                    if (data.success) {
+                        generateConversionTrendChart(data.data);
+                    }
+                } catch (error) {
+                    console.error('获取转化率趋势数据失败:', error);
+                }
+            });
+        });
+    } catch (error) {
+        console.error('获取转化率数据失败:', error);
+        // 显示错误信息给用户
+        document.querySelectorAll('.profile-info-card .card-body').forEach(cardBody => {
+            cardBody.innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">加载数据失败</h4>
+                    <p>${error.message}</p>
+                    <hr>
+                    <p class="mb-0">请检查浏览器控制台获取详细错误信息</p>
+                </div>
+            `;
+        });
+    }
+});
+
+function updateStatsCards(stats) {
+    // 更新浏览转化率
+    document.getElementById('view-to-application-rate').textContent = stats.view_to_application_rate + '%';
+    
+    // 更新申请转化率
+    document.getElementById('application-to-collaboration-rate').textContent = stats.application_to_collaboration_rate + '%';
+    
+    // 更新整体转化率
+    document.getElementById('overall-conversion-rate').textContent = stats.overall_conversion_rate + '%';
+    
+    // 更新转化漏斗比例
+    const views = stats.total_views;
+    const applications = stats.total_applications;
+    const completions = stats.completed_tasks;
+    
+    // 计算最大值，用于归一化比例
+    const max = Math.max(views, applications, completions);
+    if (max > 0) {
+        const viewRatio = Math.round((views / max) * 100);
+        const appRatio = Math.round((applications / max) * 100);
+        const compRatio = Math.round((completions / max) * 100);
+        document.getElementById('funnel-ratio').textContent = `${viewRatio}:${appRatio}:${compRatio}`;
+    } else {
+        document.getElementById('funnel-ratio').textContent = '0:0:0';
+    }
+}
+
+function generateConversionTrendChart(data) {
+    // 生成图表
+    const ctx = document.getElementById('conversion-trend-chart').getContext('2d');
+    
+    // 销毁旧图表（如果存在）
+    if (window.conversionTrendChart) {
+        window.conversionTrendChart.destroy();
+    }
+    
+    window.conversionTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [
+                {
+                    label: '浏览次数',
+                    data: data.views_data,
+                    borderColor: '#4b6cb7',
+                    backgroundColor: 'rgba(75, 108, 183, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    yAxisID: 'y'
+                },
+                {
+                    label: '申请次数',
+                    data: data.applications_data,
+                    borderColor: '#11998e',
+                    backgroundColor: 'rgba(17, 153, 142, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    yAxisID: 'y'
+                },
+                {
+                    label: '转化率',
+                    data: data.conversion_rate_data,
+                    borderColor: '#fc5c7d',
+                    borderWidth: 2,
+                    backgroundColor: 'rgba(252, 92, 125, 0)',
+                    fill: false,
+                    tension: 0.4,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.dataset.label;
+                            const value = context.raw;
+                            if (label === '转化率') {
+                                return label + ': ' + value + '%';
+                            } else {
+                                return label + ': ' + value;
+                            }
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: '数量'
+                    },
+                    beginAtZero: true
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: '转化率 (%)'
+                    },
+                    min: 0,
+                    max: 100,
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                }
+            }
+        }
+    });
+}
+
+function generateConversionFunnelChart(data) {
+    // 生成图表
+    const ctx = document.getElementById('conversion-funnel-chart').getContext('2d');
+    
+    // 销毁旧图表（如果存在）
+    if (window.conversionFunnelChart) {
+        window.conversionFunnelChart.destroy();
+    }
+    
+    const views = data.total_views;
+    const applications = data.total_applications;
+    const completed = data.completed_tasks;
+    
+    window.conversionFunnelChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['浏览量', '申请数', '完成数'],
+            datasets: [{
+                data: [views, applications, completed],
+                backgroundColor: [
+                    'rgba(75, 108, 183, 0.7)',
+                    'rgba(17, 153, 142, 0.7)',
+                    'rgba(252, 92, 125, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(75, 108, 183, 1)',
+                    'rgba(17, 153, 142, 1)',
+                    'rgba(252, 92, 125, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            indexAxis: 'y',
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw;
+                            
+                            if (label === '浏览量') {
+                                return `浏览量: ${value}`;
+                            } else if (label === '申请数') {
+                                const rate = views > 0 ? ((value / views) * 100).toFixed(2) : 0;
+                                return `申请数: ${value} (${rate}% 的浏览)`;
+                            } else if (label === '完成数') {
+                                const rate = applications > 0 ? ((value / applications) * 100).toFixed(2) : 0;
+                                return `完成数: ${value} (${rate}% 的申请)`;
+                            }
+                            return `${label}: ${value}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: '数量'
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

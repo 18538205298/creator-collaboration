@@ -1,0 +1,51 @@
+{% extends "advertiser/base.html" %}
+
+{% block title %}广告主 - 广告任务{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/advertiser/ad_tasks/style.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+<h2>广告任务</h2>
+
+<!-- 横向导航栏 -->
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'create' %}active{% endif %}" href="{{ url_for('advertiser.ad_tasks_create') }}">
+            <i class="bi bi-plus-circle"></i> 发布广告任务
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'pending' %}active{% endif %}" href="{{ url_for('advertiser.ad_tasks_pending') }}">
+            <i class="bi bi-hourglass-split"></i> 待合作任务
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'ongoing' %}active{% endif %}" href="{{ url_for('advertiser.ad_tasks_ongoing') }}">
+            <i class="bi bi-play-circle"></i> 进行中项目
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'completed' %}active{% endif %}" href="{{ url_for('advertiser.ad_tasks_completed') }}">
+            <i class="bi bi-check-circle"></i> 已完成项目
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if active_tab == 'cancelled' %}active{% endif %}" href="{{ url_for('advertiser.ad_tasks_cancelled') }}">
+            <i class="bi bi-x-circle"></i> 已取消项目
+        </a>
+    </li>
+</ul>
+
+<!-- 内容区块 -->
+<div class="ad-tasks-content">
+    {% block ad_tasks_content %}
+    <!-- 默认内容 -->
+    <div class="alert alert-info">
+        请从上方选择您要查看的内容
+    </div>
+    {% endblock %}
+</div>
+{% endblock %}

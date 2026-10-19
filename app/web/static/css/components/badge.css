@@ -1,0 +1,29 @@
+/* badge样式组件 - 用于显示通知数字的气泡 */
+.badge {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    vertical-align: middle;
+}
+
+/* 圆形气泡样式 */
+.badge.rounded-pill {
+    border-radius: 10rem;
+}
+
+/* 特别是在侧边栏中的badge样式 */
+.sidebar-nav .badge.bg-danger {
+    background-color: #e74c3c !important;
+    color: white;
+    box-shadow: 0 0 5px rgba(231, 76, 60, 0.5);
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+} 

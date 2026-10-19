@@ -1,0 +1,502 @@
+/* 合作者列表卡片布局组件样式 */
+
+.collaborator-list-container {
+    padding: 20px 0;
+}
+
+.collaborator-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.collaborator-list-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    position: relative;
+    padding-left: 15px;
+}
+
+.collaborator-list-title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 5px;
+    bottom: 5px;
+    width: 4px;
+    background: linear-gradient(to bottom, #3a7bd5, #00d2ff);
+    border-radius: 4px;
+}
+
+.collaborator-list-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.collaborator-list-action-btn {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: none;
+    background: #f5f7fa;
+    color: #667085;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+.collaborator-list-action-btn i {
+    margin-right: 6px;
+}
+
+.collaborator-list-action-btn:hover {
+    background: #eaeef3;
+    color: #3a7bd5;
+}
+
+.collaborator-list-action-btn.active {
+    background: rgba(58, 123, 213, 0.1);
+    color: #3a7bd5;
+}
+
+/* 搜索区域 */
+.collaborator-search-box {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+    padding: 20px;
+    margin-bottom: 25px;
+    border: 1px solid rgba(218, 225, 239, 0.7);
+}
+
+.collaborator-search-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #344054;
+}
+
+.collaborator-search-form {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.collaborator-search-field {
+    margin-bottom: 15px;
+}
+
+.collaborator-search-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+    color: #667085;
+    font-weight: 500;
+}
+
+.collaborator-search-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d9dde3;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.collaborator-search-input:focus {
+    border-color: #3a7bd5;
+    box-shadow: 0 0 0 3px rgba(58, 123, 213, 0.1);
+    outline: none;
+}
+
+.collaborator-search-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d9dde3;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s;
+    background-color: #fff;
+}
+
+.collaborator-search-select:focus {
+    border-color: #3a7bd5;
+    box-shadow: 0 0 0 3px rgba(58, 123, 213, 0.1);
+    outline: none;
+}
+
+.collaborator-search-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    grid-column: 1 / -1;
+    margin-top: 10px;
+}
+
+.collaborator-search-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.collaborator-search-btn-primary {
+    background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+    color: white;
+}
+
+.collaborator-search-btn-primary:hover {
+    box-shadow: 0 4px 10px rgba(58, 123, 213, 0.3);
+    transform: translateY(-2px);
+}
+
+.collaborator-search-btn-secondary {
+    background: #f5f7fa;
+    color: #667085;
+    border: 1px solid #d9dde3;
+}
+
+.collaborator-search-btn-secondary:hover {
+    background: #eaeef3;
+}
+
+/* 列表卡片组件 */
+.collaborator-list-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25px;
+}
+
+.collaborator-list-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+    border: 1px solid rgba(218, 225, 239, 0.7);
+}
+
+.collaborator-list-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.collaborator-list-card-header {
+    display: flex;
+    padding: 15px;
+    border-bottom: 1px solid #f0f2f5;
+    position: relative;
+}
+
+.collaborator-list-card-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(to right, #3a7bd5, #00d2ff);
+}
+
+.collaborator-list-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 3px solid #fff;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.collaborator-list-card-info {
+    margin-left: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.collaborator-list-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.collaborator-list-platform-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    background: rgba(58, 123, 213, 0.1);
+    color: #3a7bd5;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+.collaborator-list-followers {
+    font-size: 14px;
+    color: #667085;
+}
+
+.collaborator-list-followers span {
+    font-weight: 600;
+    color: #333;
+}
+
+.collaborator-list-card-body {
+    padding: 12px 15px;
+}
+
+.collaborator-list-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.collaborator-list-stat-item {
+    text-align: center;
+    flex: 1;
+    padding: 8px 5px;
+    background: #f9fafc;
+    border-radius: 8px;
+    margin: 0 4px;
+}
+
+.collaborator-list-stat-item:first-child {
+    margin-left: 0;
+}
+
+.collaborator-list-stat-item:last-child {
+    margin-right: 0;
+}
+
+.collaborator-list-stat-value {
+    font-weight: 700;
+    font-size: 16px;
+    color: #3a7bd5;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.collaborator-list-stat-label {
+    font-size: 12px;
+    color: #667085;
+}
+
+.collaborator-list-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.collaborator-list-tag {
+    padding: 2px 8px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.collaborator-list-domain-tag {
+    background: rgba(250, 112, 154, 0.1);
+    color: #fa709a;
+}
+
+.collaborator-list-style-tag {
+    background: rgba(132, 250, 176, 0.1);
+    color: #4caf50;
+}
+
+.collaborator-list-format-tag {
+    background: rgba(254, 225, 64, 0.1);
+    color: #d6a700;
+}
+
+.collaborator-list-card-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+}
+
+.collaborator-list-action {
+    flex: 1;
+    padding: 6px 0;
+    text-align: center;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.collaborator-list-action-view {
+    background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+    color: white;
+    margin-right: 10px;
+}
+
+.collaborator-list-action-view:hover {
+    box-shadow: 0 4px 10px rgba(58, 123, 213, 0.3);
+    transform: translateY(-2px);
+}
+
+.collaborator-list-action-invite {
+    background: linear-gradient(135deg, #fa709a, #fee140);
+    color: white;
+}
+
+.collaborator-list-action-invite:hover {
+    box-shadow: 0 4px 10px rgba(250, 112, 154, 0.3);
+    transform: translateY(-2px);
+}
+
+.collaborator-list-favorite {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f7fa;
+    border-radius: 50%;
+    color: #667085;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.collaborator-list-favorite:hover {
+    background: #eaeef3;
+    color: #ff6b6b;
+}
+
+.collaborator-list-favorite.active {
+    background: #ff6b6b;
+    color: white;
+}
+
+.collaborator-list-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px;
+    background: #f9fafc;
+    border-radius: 12px;
+    color: #667085;
+}
+
+.collaborator-list-empty i {
+    font-size: 48px;
+    color: #d9dde3;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.collaborator-list-empty-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #344054;
+    margin-bottom: 10px;
+}
+
+.collaborator-list-empty-text {
+    font-size: 14px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.collaborator-list-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+/* Flask-Paginate样式覆盖 */
+.collaborator-list-pagination .pagination {
+    margin: 0;
+}
+
+.collaborator-list-pagination .page-item .page-link {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 5px;
+    border-radius: 8px;
+    background: #fff;
+    color: #667085;
+    font-weight: 500;
+    transition: all 0.2s;
+    border: 1px solid #d9dde3;
+    padding: 0;
+}
+
+.collaborator-list-pagination .page-item .page-link:hover {
+    background: #f5f7fa;
+    color: #3a7bd5;
+    border-color: #3a7bd5;
+    text-decoration: none;
+}
+
+.collaborator-list-pagination .page-item.active .page-link {
+    background: #3a7bd5;
+    color: white;
+    border-color: #3a7bd5;
+}
+
+.collaborator-list-pagination .page-item.disabled .page-link {
+    background: #f5f5f5;
+    color: #ccc;
+    cursor: not-allowed;
+    border-color: #e0e0e0;
+}
+
+/* 响应式调整 */
+@media (max-width: 1400px) {
+    .collaborator-list-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .collaborator-list-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .collaborator-search-form {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .collaborator-list-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .collaborator-search-form {
+        grid-template-columns: 1fr;
+    }
+    
+    .collaborator-list-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .collaborator-list-actions {
+        margin-top: 15px;
+        width: 100%;
+    }
+    
+    .collaborator-list-action-btn {
+        flex: 1;
+        justify-content: center;
+    }
+}

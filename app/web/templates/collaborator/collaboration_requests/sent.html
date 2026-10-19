@@ -1,0 +1,270 @@
+{% extends "collaborator/collaboration_requests/base.html" %}
+
+{% block requests_content %}
+<div class="request-list-container">
+    <!-- 待处理请求 -->
+    <div class="request-list-group">
+        <h3 class="request-list-group-title">待回应</h3>
+        {% if pending_requests %}
+        <div class="request-list-row">
+            {% for request in pending_requests %}
+            <div class="request-card" data-request-id="{{ request.id }}">
+                <div class="request-card-header">
+                    {% if request.advertiser_avatar and request.advertiser_avatar != 'default_advertiser.png' %}
+                        <img src="{{ url_for('static', filename='uploads/avatars/' + request.advertiser_avatar) }}" alt="{{ request.advertiser_name }}" class="request-card-avatar">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='img/default_advertiser.png') }}" alt="{{ request.advertiser_name }}" class="request-card-avatar">
+                    {% endif %}
+                    <div class="request-card-header-info">
+                        <div class="request-card-title">{{ request.advertiser_name }}</div>
+                        <div class="request-card-meta">
+                            <div class="request-card-time">
+                                <i class="bi bi-clock"></i> {{ request.created_at.strftime('%Y-%m-%d') }}
+                            </div>
+                            <span class="request-card-status request-card-status-pending">待回应</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="request-card-body">
+                    <div class="request-card-task-title">
+                        <i class="bi bi-briefcase"></i> {{ request.task_title }}
+                    </div>
+                    <div class="request-card-message">
+                        {{ request.request_content }}
+                    </div>
+                </div>
+                <div class="request-card-footer">
+                    <div class="request-card-actions">
+                        <button class="request-card-action-btn request-card-view-btn" data-request-id="{{ request.id }}">
+                            <i class="bi bi-eye"></i> 查看
+                        </button>
+                        <button class="request-card-action-btn request-card-reject-btn" data-request-id="{{ request.id }}">
+                            <i class="bi bi-x-circle"></i> 取消
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="request-list-empty">
+            <i class="bi bi-hourglass"></i>
+            <div class="request-list-empty-title">暂无待回应请求</div>
+            <div class="request-list-empty-text">您目前没有等待广告主回应的申请，可以浏览广告任务并发送合作申请</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 已接受请求 -->
+    <div class="request-list-group">
+        <h3 class="request-list-group-title">已接受</h3>
+        {% if accepted_requests %}
+        <div class="request-list-row">
+            {% for request in accepted_requests %}
+            <div class="request-card" data-request-id="{{ request.id }}">
+                <div class="request-card-header">
+                    {% if request.advertiser_avatar and request.advertiser_avatar != 'default_advertiser.png' %}
+                        <img src="{{ url_for('static', filename='uploads/avatars/' + request.advertiser_avatar) }}" alt="{{ request.advertiser_name }}" class="request-card-avatar">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='img/default_advertiser.png') }}" alt="{{ request.advertiser_name }}" class="request-card-avatar">
+                    {% endif %}
+                    <div class="request-card-header-info">
+                        <div class="request-card-title">{{ request.advertiser_name }}</div>
+                        <div class="request-card-meta">
+                            <div class="request-card-time">
+                                <i class="bi bi-clock"></i> {{ request.created_at.strftime('%Y-%m-%d') }}
+                            </div>
+                            <span class="request-card-status request-card-status-accepted">已接受</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="request-card-body">
+                    <div class="request-card-task-title">
+                        <i class="bi bi-briefcase"></i> {{ request.task_title }}
+                    </div>
+                    <div class="request-card-message">
+                        {{ request.request_content }}
+                    </div>
+                    {% if request.response_message %}
+                    <div class="request-card-response-message" style="display:none;">
+                        {{ request.response_message }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="request-card-footer">
+                    <div class="request-card-actions">
+                        <button class="request-card-action-btn request-card-view-btn" data-request-id="{{ request.id }}">
+                            <i class="bi bi-eye"></i> 查看
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="request-list-empty">
+            <i class="bi bi-check-circle"></i>
+            <div class="request-list-empty-title">暂无已接受请求</div>
+            <div class="request-list-empty-text">您的申请暂未被广告主接受，耐心等待对方回应</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 已拒绝请求 -->
+    <div class="request-list-group">
+        <h3 class="request-list-group-title">已拒绝</h3>
+        {% if rejected_requests %}
+        <div class="request-list-row">
+            {% for request in rejected_requests %}
+            <div class="request-card" data-request-id="{{ request.id }}">
+                <div class="request-card-header">
+                    {% if request.advertiser_avatar and request.advertiser_avatar != 'default_advertiser.png' %}
+                        <img src="{{ url_for('static', filename='uploads/avatars/' + request.advertiser_avatar) }}" alt="{{ request.advertiser_name }}" class="request-card-avatar">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='img/default_advertiser.png') }}" alt="{{ request.advertiser_name }}" class="request-card-avatar">
+                    {% endif %}
+                    <div class="request-card-header-info">
+                        <div class="request-card-title">{{ request.advertiser_name }}</div>
+                        <div class="request-card-meta">
+                            <div class="request-card-time">
+                                <i class="bi bi-clock"></i> {{ request.created_at.strftime('%Y-%m-%d') }}
+                            </div>
+                            <span class="request-card-status request-card-status-rejected">已拒绝</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="request-card-body">
+                    <div class="request-card-task-title">
+                        <i class="bi bi-briefcase"></i> {{ request.task_title }}
+                    </div>
+                    <div class="request-card-message">
+                        {{ request.request_content }}
+                    </div>
+                    {% if request.response_message %}
+                    <div class="request-card-response-message" style="display:none;">
+                        {{ request.response_message }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="request-card-footer">
+                    <div class="request-card-actions">
+                        <button class="request-card-action-btn request-card-view-btn" data-request-id="{{ request.id }}">
+                            <i class="bi bi-eye"></i> 查看
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="request-list-empty">
+            <i class="bi bi-x-circle"></i>
+            <div class="request-list-empty-title">暂无被拒绝的请求</div>
+            <div class="request-list-empty-text">目前没有广告主拒绝您的申请，这是好事情</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- 已取消请求 -->
+    <div class="request-list-group">
+        <h3 class="request-list-group-title">已取消</h3>
+        {% if canceled_requests %}
+        <div class="request-list-row">
+            {% for request in canceled_requests %}
+            <div class="request-card" data-request-id="{{ request.id }}">
+                <div class="request-card-header">
+                    {% if request.advertiser_avatar and request.advertiser_avatar != 'default_advertiser.png' %}
+                        <img src="{{ url_for('static', filename='uploads/avatars/' + request.advertiser_avatar) }}" alt="{{ request.advertiser_name }}" class="request-card-avatar">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='img/default_advertiser.png') }}" alt="{{ request.advertiser_name }}" class="request-card-avatar">
+                    {% endif %}
+                    <div class="request-card-header-info">
+                        <div class="request-card-title">{{ request.advertiser_name }}</div>
+                        <div class="request-card-meta">
+                            <div class="request-card-time">
+                                <i class="bi bi-clock"></i> {{ request.created_at.strftime('%Y-%m-%d') }}
+                            </div>
+                            <span class="request-card-status request-card-status-canceled">已取消</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="request-card-body">
+                    <div class="request-card-task-title">
+                        <i class="bi bi-briefcase"></i> {{ request.task_title }}
+                    </div>
+                    <div class="request-card-message">
+                        {{ request.request_content }}
+                    </div>
+                    {% if request.response_message %}
+                    <div class="request-card-response-message" style="display:none;">
+                        {{ request.response_message }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="request-card-footer">
+                    <div class="request-card-actions">
+                        <button class="request-card-action-btn request-card-view-btn" data-request-id="{{ request.id }}">
+                            <i class="bi bi-eye"></i> 查看
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="request-list-empty">
+            <i class="bi bi-slash-circle"></i>
+            <div class="request-list-empty-title">暂无已取消请求</div>
+            <div class="request-list-empty-text">您暂未取消任何合作申请</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 获取所有的取消按钮
+    const cancelButtons = document.querySelectorAll('.request-card-reject-btn');
+    
+    // 为每个取消按钮添加点击事件
+    cancelButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // 获取请求ID
+            const requestCard = this.closest('.request-card');
+            const requestId = requestCard.getAttribute('data-request-id');
+            
+            // 确认是否取消
+            if (!confirm('确定要取消这个合作请求吗？')) {
+                return;
+            }
+            
+            // 发送取消请求
+            fetch(`/collaborator/api/cancel_request/${requestId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // 成功取消，刷新页面
+                    window.location.reload();
+                } else {
+                    // 显示错误信息
+                    alert(data.message || '取消请求失败，请稍后重试');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('网络错误，请稍后重试');
+            });
+        });
+    });
+});
+</script>
+{% endblock %} 

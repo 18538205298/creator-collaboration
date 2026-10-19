@@ -1,0 +1,22 @@
+{% extends "admin/base.html" %}
+
+{% block title %}管理员 - 系统设置{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid mt-4">
+    <h2>系统设置</h2>
+    
+    <!-- 横向导航栏 -->
+    <ul class="nav nav-tabs mt-3">
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'basic' %}active{% endif %}" href="{{ url_for('admin.system_settings_basic') }}">
+                <i class="bi bi-sliders"></i> 基础配置
+            </a>
+        </li>
+    </ul>
+    
+    <div class="tab-content mt-3">
+        {% block tab_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %}

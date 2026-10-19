@@ -1,0 +1,151 @@
+{% extends "collaborator/home/base.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/collaboration_request_card.css') }}">
+{% endblock %}
+
+{% block home_content %}
+<div class="container">
+ 
+
+    <div class="request-list-container">
+        <!-- 为您推荐 - 基于算法的个性化推荐 -->
+        {% if recommended_tasks %}
+        <div class="request-list-group">
+            <h3 class="request-list-group-title">为您推荐</h3>
+            <div class="request-list-row">
+                {% for task in recommended_tasks %}
+                <div class="request-card">
+                    <div class="request-card-header">
+                        {% if task.advertiser_avatar and task.advertiser_avatar != 'default_advertiser.png' %}
+                            <img src="{{ url_for('static', filename='uploads/avatars/' + task.advertiser_avatar) }}" alt="{{ task.advertiser_name }}" class="request-card-avatar">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='img/default_advertiser.png') }}" alt="{{ task.advertiser_name }}" class="request-card-avatar">
+                        {% endif %}
+                        <div class="request-card-header-info">
+                            <div class="request-card-title">{{ task.advertiser_name }}</div>
+                            <div class="request-card-meta">
+                                <div class="request-card-time">
+                                    <i class="bi bi-buildings"></i> 
+                                    <span>{{ task.company_name }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="request-card-body">
+                        <div class="request-card-task-title">
+                            <i class="bi bi-briefcase"></i> {{ task.title }}
+                        </div>
+                        <div class="request-card-message">
+                            {{ task.description|truncate(80) }} | 预算: ¥{{ task.budget }}
+                        </div>
+                    </div>
+                    <div class="request-card-footer">
+                        <div class="request-card-actions">
+                            <a href="{{ url_for('collaborator.task_detail', id=task.id) }}" class="request-card-action-btn request-card-view-btn">
+                                <i class="bi bi-eye"></i> 查看详情
+                            </a>
+                            <button class="request-card-action-btn request-card-accept-btn apply-task-btn" data-task-id="{{ task.id }}" data-task-title="{{ task.title }}">
+                                <i class="bi bi-send"></i> 申请合作
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+
+        <!-- 无推荐数据时显示的提示 -->
+        {% if not recommended_tasks and not trending_tasks and not high_budget_tasks %}
+        <div class="request-list-empty">
+            <i class="bi bi-search"></i>
+            <div class="request-list-empty-title">暂无合适的推荐任务</div>
+            <p class="request-list-empty-text">请完善您的个人资料和专业领域信息，我们将为您提供更精准的任务推荐</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 申请任务模态框 -->
+<div class="modal fade" id="applyModal" tabindex="-1" aria-labelledby="applyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="applyModalLabel">申请合作任务</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="applyForm">
+                    <input type="hidden" id="task_id" name="task_id">
+                    
+                    <div class="mb-3">
+                        <label for="request_content" class="form-label">申请说明</label>
+                        <textarea class="form-control" id="request_content" name="request_content" rows="4" required placeholder="请简要介绍自己的专长和对此任务的理解..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">作品案例链接</label>
+                        <input type="text" class="form-control mb-2" placeholder="请填写您的作品或案例链接（非必填）">
+                        <div class="form-text">提供您的相关作品链接有助于提高申请成功率</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="sendApplyBtn">提交申请</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 申请任务按钮点击事件
+    const applyBtns = document.querySelectorAll('.apply-task-btn');
+    const applyModal = new bootstrap.Modal(document.getElementById('applyModal'));
+    
+    applyBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const taskId = this.getAttribute('data-task-id');
+            const taskTitle = this.getAttribute('data-task-title');
+            
+            document.getElementById('task_id').value = taskId;
+            document.getElementById('applyModalLabel').textContent = `申请任务: ${taskTitle}`;
+            
+            applyModal.show();
+        });
+    });
+    
+    // 发送申请
+    document.getElementById('sendApplyBtn').addEventListener('click', function() {
+        const form = document.getElementById('applyForm');
+        
+        // 简单验证
+        const content = document.getElementById('request_content').value;
+        
+        if (!content) {
+            alert('请填写申请说明');
+            return;
+        }
+        
+        // 这里应该是AJAX请求发送申请
+        // 简单模拟发送成功
+        alert('申请已提交成功！');
+        applyModal.hide();
+        
+        // 更新按钮状态
+        const taskId = document.getElementById('task_id').value;
+        const btn = document.querySelector(`.apply-task-btn[data-task-id="${taskId}"]`);
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-check-circle"></i> 已申请';
+            btn.classList.remove('request-card-accept-btn');
+            btn.classList.add('request-card-view-btn');
+        }
+    });
+});
+</script>
+{% endblock %} 

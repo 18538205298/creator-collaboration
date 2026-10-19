@@ -1,0 +1,13 @@
+.collaborator-search-content{min-height:400px}
+
+/* 卡片样式 */
+.collaborator-card{transition:box-shadow .3s,transform .3s;border:1px solid rgba(0,0,0,.075)}
+.collaborator-card:hover{transform:translateY(-5px);box-shadow:0 10px 20px rgba(0,0,0,.1)}
+
+/* 收藏按钮样式 */
+.favorite-btn{width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center}
+.favorite-btn:hover{background-color:#fff}
+.favorite-btn i{font-size:16px}
+
+/* 浏览历史样式 */
+.list-group-item.bg-light{background-color:#f8f9fa !important;font-size:0.9rem} 

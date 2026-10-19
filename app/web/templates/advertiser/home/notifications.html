@@ -1,0 +1,157 @@
+{% extends "advertiser/home/base.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/collaboration_request_card.css') }}">
+{% endblock %}
+
+{% block home_content %}
+<div class="container">
+    <div class="request-list-container">
+        <div class="request-list-group">
+            <h3 class="request-list-group-title">系统通知</h3>
+            <div class="request-list-row">
+                {% if notifications %}
+                    {% for notification in notifications %}
+                    <div class="request-card">
+                        <div class="request-card-header">
+                            <div class="request-card-header-info">
+                           
+                                <div class="request-card-meta">
+                                    <div class="request-card-time">
+                                        <i class="bi bi-clock"></i> 
+                                        <span>{{ notification.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="request-card-body">
+                            <div class="request-card-task-title">
+                                <i class="bi bi-bell"></i> {{ notification.title }}
+                            </div>
+                            <div class="request-card-message">
+                                {{ notification.content|truncate(80) }}
+                            </div>
+                        </div>
+                        <div class="request-card-footer">
+                            <div class="request-card-actions">
+                                <button class="request-card-action-btn request-card-view-btn view-notification-btn" data-notification-id="{{ notification.id }}" data-notification-content="{{ notification.content }}">
+                                    <i class="bi bi-eye"></i> 查看详情
+                                </button>
+                                {% if not notification.is_read %}
+                                <button class="request-card-action-btn request-card-accept-btn mark-read-btn" data-notification-id="{{ notification.id }}">
+                                    <i class="bi bi-check-circle"></i> 标记已读
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="request-list-empty">
+                    <i class="bi bi-bell-slash"></i>
+                    <div class="request-list-empty-title">暂无系统通知</div>
+                    <p class="request-list-empty-text">当有重要的系统消息时，我们会在这里通知您</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 通知详情模态框 -->
+<div class="modal fade" id="notificationDetailModal" tabindex="-1" aria-labelledby="notificationDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notificationDetailModalLabel">通知详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="notificationDetailContent"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" id="markAsReadBtn">标记为已读</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 查看通知详情
+    const viewBtns = document.querySelectorAll('.view-notification-btn');
+    const notificationModal = new bootstrap.Modal(document.getElementById('notificationDetailModal'));
+    
+    viewBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const notificationId = this.getAttribute('data-notification-id');
+            const notificationContent = this.getAttribute('data-notification-content');
+            
+            document.getElementById('notificationDetailContent').textContent = notificationContent;
+            document.getElementById('markAsReadBtn').setAttribute('data-notification-id', notificationId);
+            
+            notificationModal.show();
+        });
+    });
+    
+    // 标记为已读 - 模态框内
+    document.getElementById('markAsReadBtn').addEventListener('click', function() {
+        const notificationId = this.getAttribute('data-notification-id');
+        markNotificationAsRead(notificationId);
+        notificationModal.hide();
+    });
+    
+    // 标记为已读 - 列表内按钮
+    const markReadBtns = document.querySelectorAll('.mark-read-btn');
+    markReadBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const notificationId = this.getAttribute('data-notification-id');
+            markNotificationAsRead(notificationId);
+        });
+    });
+    
+    // 标记通知为已读的函数
+    function markNotificationAsRead(notificationId) {
+        // 先更新UI，避免API错误影响用户体验
+        const notificationCard = document.querySelector(`.request-card-action-btn[data-notification-id="${notificationId}"]`).closest('.request-card');
+        const markReadBtn = notificationCard.querySelector('.mark-read-btn');
+        
+        if (markReadBtn) {
+            markReadBtn.remove();
+        }
+        
+        // 可选：添加一个已读标志或改变卡片样式
+        notificationCard.style.opacity = '0.8';
+        
+        // 发送AJAX请求标记已读
+        fetch('/advertiser/api/notifications/mark_read', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                notification_id: notificationId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // 显示成功提示
+                // alert('通知已标记为已读');
+                console.log('通知已标记为已读');
+            } else {
+                // 显示错误提示但不回滚UI操作
+                console.error('API请求返回错误：' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('标记已读请求出错:', error);
+            // 不显示错误弹窗，避免干扰用户体验
+            // alert('标记已读请求出错，请稍后再试');
+        });
+    }
+});
+</script>
+{% endblock %} 

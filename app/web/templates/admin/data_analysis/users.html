@@ -1,0 +1,645 @@
+{% extends "admin/data_analysis/base.html" %}
+
+{% block tab_content %}
+<div class="row mb-4">
+    <div class="col-md-12 mb-4">
+        <div class="profile-info-card">
+            <div class="card-header">
+                <h5><i class="bi bi-people-fill me-2"></i>用户概览</h5>
+            </div>
+            <div class="card-body">
+                <div class="profile-stats-grid">
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-value" id="total-users">-</div>
+                        <div class="profile-stat-label">总用户数</div>
+                    </div>
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-value" id="total-advertisers">-</div>
+                        <div class="profile-stat-label">广告主数量</div>
+                    </div>
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-value" id="total-collaborators">-</div>
+                        <div class="profile-stat-label">合作者数量</div>
+                    </div>
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-value" id="active-users">-</div>
+                        <div class="profile-stat-label">最近活跃用户</div>
+                    </div>
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-value" id="new-users-month">-</div>
+                        <div class="profile-stat-label">本月新增用户</div>
+                    </div>
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-value" id="conversion-rate">-</div>
+                        <div class="profile-stat-label">用户转化率</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6 mb-4">
+        <div class="profile-info-card">
+            <div class="card-header">
+                <h5><i class="bi bi-graph-up me-2"></i>用户增长趋势</h5>
+            </div>
+            <div class="card-body" style="height: 400px;">
+                <canvas id="userGrowthChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="profile-info-card">
+            <div class="card-header">
+                <h5><i class="bi bi-pie-chart-fill me-2"></i>用户类型分布</h5>
+            </div>
+            <div class="card-body" style="height: 400px; display: flex; justify-content: center; align-items: center;">
+                <canvas id="userTypeChart"></canvas>
+              </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12 mb-4">
+        <div class="profile-info-card">
+            <div class="card-header">
+                <h5><i class="bi bi-geo-alt-fill me-2"></i>合作者平台分布</h5>
+            </div>
+            <div class="card-body" style="height: 400px; display: flex; justify-content: center; align-items: center;">                <canvas id="platformDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6 mb-4">
+        <div class="profile-info-card">
+            <div class="card-header">
+                <h5><i class="bi bi-star-fill me-2"></i>合作者粉丝数分布</h5>
+            </div>
+            <div class="card-body" style="height: 400px;">
+                <canvas id="followerDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="profile-info-card">
+            <div class="card-header">
+                <h5><i class="bi bi-tags-fill me-2"></i>广告主行业分布</h5>
+            </div>
+            <div class="card-body" style="height: 400px; display: flex; justify-content: center; align-items: center;">
+                <canvas id="industryDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12 mb-4">
+        <div class="profile-info-card">
+            <div class="card-header">
+                <h5><i class="bi bi-activity me-2"></i>用户活跃度分析</h5>
+            </div>
+            <div class="card-body" style="height: 400px; display: flex; justify-content: center; align-items: center;">
+                <canvas id="userActivityChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6 mb-4">
+        <div class="profile-info-card">
+            <div class="card-header">
+                <h5><i class="bi bi-currency-dollar me-2"></i>广告主预算范围分布</h5>
+            </div>
+            <div class="card-body" style="height: 400px; display: flex; justify-content: center; align-items: center;">
+                <canvas id="budgetDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="profile-info-card">
+            <div class="card-header">
+                <h5><i class="bi bi-clipboard-data me-2"></i>合作者内容领域分布</h5>
+            </div>
+            <div class="card-body" style="height: 400px; display: flex; justify-content: center; align-items: center;">
+                <canvas id="contentDomainChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- 引入Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化所有图表和统计数据
+    initializeCharts();
+});
+
+// 初始化所有图表和数据
+async function initializeCharts() {
+    try {
+        // 首先加载用户统计数据，这是最基本的信息
+        await loadUserStats();
+        
+        // 加载各个图表数据 - 如果某个图表加载失败，不会影响其他图表
+        const chartPromises = [
+            loadUserGrowthChart(),
+            loadUserTypeChart(),
+            loadPlatformDistributionChart(),
+            loadFollowerDistributionChart(),
+            loadIndustryDistributionChart(),
+            loadUserActivityChart(),
+            loadBudgetDistributionChart(),
+            loadContentDomainChart()
+        ];
+        
+        // 并行加载所有图表，但不中断整体流程
+        const results = await Promise.allSettled(chartPromises);
+        
+        // 检查有多少图表加载失败
+        const failedCharts = results.filter(result => result.status === 'rejected');
+        if (failedCharts.length > 0) {
+            console.warn(`${failedCharts.length}个图表无法加载真实数据`);
+        }
+    } catch (error) {
+        console.error('初始化图表时出错:', error);
+        
+        // 显示一个通用错误消息，但不要替代任何真实数据
+        const container = document.querySelector('.container-fluid');
+        if (container) {
+            const errorAlert = document.createElement('div');
+            errorAlert.className = 'alert alert-danger mt-3';
+            errorAlert.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>数据加载过程中发生错误，部分图表可能无法显示真实数据。请刷新页面重试。';
+            container.insertBefore(errorAlert, container.firstChild);
+        }
+    }
+}
+
+// 加载用户统计数据
+async function loadUserStats() {
+    try {
+        const response = await fetch('/admin/api/data_analysis/users/stats');
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            const data = result.data;
+            document.getElementById('total-users').textContent = data.total_users;
+            document.getElementById('total-advertisers').textContent = data.total_advertisers;
+            document.getElementById('total-collaborators').textContent = data.total_collaborators;
+            document.getElementById('active-users').textContent = data.active_users;
+            document.getElementById('new-users-month').textContent = data.new_users_month;
+            document.getElementById('conversion-rate').textContent = data.conversion_rate + '%';
+        } else {
+            throw new Error(result.message || '无法获取真实的用户统计数据');
+        }
+    } catch (error) {
+        console.error('加载用户统计信息时出错:', error);
+        // 显示错误状态，但不阻止其他图表加载
+        document.querySelectorAll('.profile-stat-value').forEach(el => {
+            el.textContent = '无法加载';
+            el.style.color = '#dc3545';
+        });
+    }
+}
+
+// 用户增长趋势图
+async function loadUserGrowthChart() {
+    try {
+        const response = await fetch('/admin/api/data_analysis/users/growth');
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            const data = result.data;
+            const ctx = document.getElementById('userGrowthChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: '广告主',
+                        data: data.advertiser_data,
+                        borderColor: 'rgba(58, 123, 213, 1)',
+                        backgroundColor: 'rgba(58, 123, 213, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: '合作者',
+                        data: data.collaborator_data,
+                        borderColor: 'rgba(255, 140, 0, 1)',
+                        backgroundColor: 'rgba(255, 140, 0, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '月度用户增长趋势'
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        } else {
+            throw new Error(result.message || '无法获取真实的用户增长数据');
+        }
+    } catch (error) {
+        console.error('加载用户增长趋势图时出错:', error);
+        showChartError('userGrowthChart', '无法加载真实数据');
+    }
+}
+
+// 用户类型分布饼图
+async function loadUserTypeChart() {
+    try {
+        const response = await fetch('/admin/api/data_analysis/users/stats');
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            const data = result.data;
+            const ctx = document.getElementById('userTypeChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['广告主', '合作者'],
+                    datasets: [{
+                        data: [data.total_advertisers, data.total_collaborators],
+                        backgroundColor: [
+                            'rgba(58, 123, 213, 0.8)',
+                            'rgba(255, 140, 0, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(58, 123, 213, 1)',
+                            'rgba(255, 140, 0, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        title: {
+                            display: true,
+                            text: '用户类型占比'
+                        }
+                    }
+                }
+            });
+        } else {
+            throw new Error(result.message || '无法获取真实的用户类型数据');
+        }
+    } catch (error) {
+        console.error('加载用户类型分布图时出错:', error);
+        showChartError('userTypeChart', '无法加载真实数据');
+    }
+}
+
+// 平台分布图
+async function loadPlatformDistributionChart() {
+    try {
+        const response = await fetch('/admin/api/data_analysis/users/platforms');
+        const result = await response.json();
+        
+        if (result.success && result.data && result.data.platforms && result.data.platforms.length > 0) {
+            const data = result.data;
+            const ctx = document.getElementById('platformDistributionChart').getContext('2d');
+            
+            // 生成颜色数组，确保有足够的颜色
+            const backgroundColors = [];
+            const borderColors = [];
+            
+            for (let i = 0; i < data.platforms.length; i++) {
+                const hue = (i * 360 / data.platforms.length) % 360;
+                backgroundColors.push(`hsla(${hue}, 70%, 60%, 0.7)`);
+                borderColors.push(`hsla(${hue}, 70%, 50%, 1)`);
+            }
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.platforms,
+                    datasets: [{
+                        label: '合作者数量',
+                        data: data.counts,
+                        backgroundColor: backgroundColors,
+                        borderColor: borderColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: '合作者平台分布'
+                        }
+                    }
+                }
+            });
+        } else {
+            throw new Error(result.message || '无法获取真实的平台分布数据或数据为空');
+        }
+    } catch (error) {
+        console.error('加载平台分布图时出错:', error);
+        showChartError('platformDistributionChart', '无法加载真实数据');
+    }
+}
+
+// 粉丝数分布图
+async function loadFollowerDistributionChart() {
+    try {
+        const response = await fetch('/admin/api/data_analysis/users/followers');
+        const result = await response.json();
+        
+        if (result.success && result.data && result.data.ranges && result.data.ranges.length > 0) {
+            const data = result.data;
+            const ctx = document.getElementById('followerDistributionChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.ranges,
+                    datasets: [{
+                        label: '合作者数量',
+                        data: data.counts,
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                        borderColor: 'rgb(75, 192, 192)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: '合作者粉丝数量分布'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        } else {
+            throw new Error(result.message || '无法获取真实的粉丝数分布数据或数据为空');
+        }
+    } catch (error) {
+        console.error('加载粉丝数分布图时出错:', error);
+        showChartError('followerDistributionChart', '无法加载真实数据');
+    }
+}
+
+// 行业分布图
+async function loadIndustryDistributionChart() {
+    try {
+        const response = await fetch('/admin/api/data_analysis/users/industries');
+        const result = await response.json();
+        
+        if (result.success && result.data && result.data.industries && result.data.industries.length > 0) {
+            const data = result.data;
+            const ctx = document.getElementById('industryDistributionChart').getContext('2d');
+            
+            // 为了视觉效果，生成足够的颜色
+            const backgroundColors = [];
+            const borderColors = [];
+            for (let i = 0; i < data.industries.length; i++) {
+                // 使用HSL颜色空间以确保颜色分布均匀
+                const hue = (i * 360 / data.industries.length) % 360;
+                backgroundColors.push(`hsla(${hue}, 70%, 60%, 0.5)`);
+                borderColors.push(`hsla(${hue}, 70%, 50%, 1)`);
+            }
+            
+            new Chart(ctx, {
+                type: 'polarArea',
+                data: {
+                    labels: data.industries,
+                    datasets: [{
+                        data: data.counts,
+                        backgroundColor: backgroundColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        title: {
+                            display: true,
+                            text: '广告主行业分布'
+                        }
+                    }
+                }
+            });
+        } else {
+            throw new Error(result.message || '无法获取真实的行业分布数据或数据为空');
+        }
+    } catch (error) {
+        console.error('加载行业分布图时出错:', error);
+        showChartError('industryDistributionChart', '无法加载真实数据');
+    }
+}
+
+// 用户活跃度图
+async function loadUserActivityChart() {
+    try {
+        const response = await fetch('/admin/api/data_analysis/users/activity');
+        const result = await response.json();
+        
+        if (result.success && result.data && result.data.labels && result.data.labels.length > 0) {
+            const data = result.data;
+            const ctx = document.getElementById('userActivityChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: '广告主活跃度',
+                        data: data.advertiser_data,
+                        borderColor: 'rgba(58, 123, 213, 1)',
+                        backgroundColor: 'rgba(58, 123, 213, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: '合作者活跃度',
+                        data: data.collaborator_data,
+                        borderColor: 'rgba(255, 140, 0, 1)',
+                        backgroundColor: 'rgba(255, 140, 0, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '周用户活跃度'
+                        }
+                    }
+                }
+            });
+        } else {
+            throw new Error(result.message || '无法获取真实的用户活跃度数据或数据为空');
+        }
+    } catch (error) {
+        console.error('加载用户活跃度图时出错:', error);
+        showChartError('userActivityChart', '无法加载真实数据');
+    }
+}
+
+// 预算范围分布图
+async function loadBudgetDistributionChart() {
+    try {
+        const response = await fetch('/admin/api/data_analysis/users/budgets');
+        const result = await response.json();
+        
+        if (result.success && result.data && result.data.ranges && result.data.ranges.length > 0) {
+            const data = result.data;
+            const ctx = document.getElementById('budgetDistributionChart').getContext('2d');
+            
+            // 生成颜色
+            const backgroundColors = [];
+            const borderColors = [];
+            for (let i = 0; i < data.ranges.length; i++) {
+                const hue = (i * 360 / data.ranges.length) % 360;
+                backgroundColors.push(`hsla(${hue}, 70%, 60%, 0.7)`);
+                borderColors.push(`hsla(${hue}, 70%, 50%, 1)`);
+            }
+            
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: data.ranges,
+                    datasets: [{
+                        data: data.counts,
+                        backgroundColor: backgroundColors,
+                        borderColor: borderColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        title: {
+                            display: true,
+                            text: '广告主预算分布'
+                        }
+                    }
+                }
+            });
+        } else {
+            throw new Error(result.message || '无法获取真实的预算分布数据或数据为空');
+        }
+    } catch (error) {
+        console.error('加载预算范围分布图时出错:', error);
+        showChartError('budgetDistributionChart', '无法加载真实数据');
+    }
+}
+
+// 内容领域分布图
+async function loadContentDomainChart() {
+    try {
+        const response = await fetch('/admin/api/data_analysis/users/content_domains');
+        const result = await response.json();
+        
+        if (result.success && result.data && result.data.domains && result.data.domains.length > 0) {
+            const data = result.data;
+            const ctx = document.getElementById('contentDomainChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: data.domains,
+                    datasets: [{
+                        label: '合作者数量',
+                        data: data.counts,
+                        backgroundColor: 'rgba(255, 140, 0, 0.2)',
+                        borderColor: 'rgba(255, 140, 0, 1)',
+                        pointBackgroundColor: 'rgba(255, 140, 0, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(255, 140, 0, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '合作者内容领域分布'
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0
+                        }
+                    }
+                }
+            });
+        } else {
+            throw new Error(result.message || '无法获取真实的内容领域数据或数据为空');
+        }
+    } catch (error) {
+        console.error('加载内容领域分布图时出错:', error);
+        showChartError('contentDomainChart', '无法加载真实数据');
+    }
+}
+
+// 显示图表加载失败的错误信息
+function showChartError(chartId, message = '数据加载失败，请刷新页面重试') {
+    const canvas = document.getElementById(chartId);
+    const container = canvas.parentElement;
+    
+    // 移除画布
+    canvas.remove();
+    
+    // 创建错误提示
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'text-center py-5 text-danger';
+    errorDiv.innerHTML = `
+        <i class="bi bi-exclamation-triangle-fill fs-1"></i>
+        <p class="mt-3">${message}</p>
+    `;
+    
+    // 添加到容器
+    container.appendChild(errorDiv);
+}
+</script>
+{% endblock %}

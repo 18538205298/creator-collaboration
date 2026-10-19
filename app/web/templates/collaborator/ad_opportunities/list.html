@@ -1,0 +1,356 @@
+{% extends "collaborator/ad_opportunities/base.html" %}
+
+{% block opportunities_content %}
+<div class="collaborator-list-container">
+    <!-- 页面标题和操作按钮 -->
+    <div class="collaborator-list-header">
+        <h1 class="collaborator-list-title">广告任务列表</h1>
+
+    </div>
+    
+    <!-- 搜索框 -->
+    <div class="collaborator-search-box">
+        <h2 class="collaborator-search-title">搜索广告任务</h2>
+        <form class="collaborator-search-form" method="get" action="{{ url_for('collaborator.ad_opportunities_list') }}">
+            <div class="collaborator-search-field">
+                <label for="platform" class="collaborator-search-label">平台</label>
+                <select id="platform" name="platform" class="collaborator-search-select">
+                    <option value="">全部平台</option>
+                    <option value="知乎">知乎</option>
+                    <option value="微博">微博</option>
+                    <option value="抖音">抖音</option>
+                    <option value="小红书">小红书</option>
+                    <option value="B站">B站</option>
+                    <option value="豆瓣">豆瓣</option>
+                </select>
+            </div>
+            <div class="collaborator-search-field">
+                <label for="contentFormat" class="collaborator-search-label">内容形式</label>
+                <select id="contentFormat" name="content_format" class="collaborator-search-select">
+                    <option value="">全部形式</option>
+                    <option value="图文">图文</option>
+                    <option value="短视频">短视频</option>
+                    <option value="直播">直播</option>
+                    <option value="视频">视频</option>
+                    <option value="音频">音频</option>
+                    <option value="问答">问答</option>
+                </select>
+            </div>
+            <div class="collaborator-search-field">
+                <label for="contentDomain" class="collaborator-search-label">内容领域</label>
+                <select id="contentDomain" name="content_domain" class="collaborator-search-select">
+                    <option value="">全部领域</option>
+                    <option value="美食">美食</option>
+                    <option value="旅游">旅游</option>
+                    <option value="游戏">游戏</option>
+                    <option value="美妆">美妆</option>
+                    <option value="教育">教育</option>
+                    <option value="科技">科技</option>
+                </select>
+            </div>
+            <div class="collaborator-search-field">
+                <label for="minBudget" class="collaborator-search-label">最低预算</label>
+                <input type="number" id="minBudget" name="min_budget" class="collaborator-search-input" placeholder="例如：1000">
+            </div>
+            <div class="collaborator-search-field">
+                <label for="contentStyle" class="collaborator-search-label">内容风格</label>
+                <select id="contentStyle" name="content_style" class="collaborator-search-select">
+                    <option value="">全部风格</option>
+                    <option value="生活">生活</option>
+                    <option value="文艺">文艺</option>
+                    <option value="科技">科技</option>
+                    <option value="时尚">时尚</option>
+                    <option value="幽默">幽默</option>
+                    <option value="励志">励志</option>
+                </select>
+            </div>
+            <div class="collaborator-search-field">
+                <label for="keyword" class="collaborator-search-label">关键词</label>
+                <input type="text" id="keyword" name="keyword" class="collaborator-search-input" placeholder="搜索任务标题或描述">
+            </div>
+            <div class="collaborator-search-actions">
+                <button type="reset" class="collaborator-search-btn collaborator-search-btn-secondary">重置</button>
+                <button type="submit" class="collaborator-search-btn collaborator-search-btn-primary">搜索</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- 广告任务列表 -->
+    <div class="collaborator-list-grid">
+        {% if ad_tasks %}
+            {% for task in ad_tasks %}
+            <div class="collaborator-list-card">
+                <div class="collaborator-list-card-header">
+                    {% if task.advertiser_avatar and task.advertiser_avatar != 'default_advertiser.png' %}
+                    <img src="{{ url_for('static', filename='uploads/avatars/' + task.advertiser_avatar) }}" alt="{{ task.advertiser_name }}" class="collaborator-list-avatar">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='img/default_advertiser.png') }}" alt="{{ task.advertiser_name }}" class="collaborator-list-avatar">
+                    {% endif %}
+                    <div class="collaborator-list-card-info">
+                        <div class="collaborator-list-name">{{ task.title }}</div>
+                        <div class="collaborator-list-platform-tag">{{ task.platform_requirements or '不限平台' }}</div>
+                        <div class="collaborator-list-followers">预算: <span>¥{{ task.budget|number_format }}</span></div>
+                    </div>
+                </div>
+                <div class="collaborator-list-card-body">
+                    <div class="collaborator-list-stats">
+                        <div class="collaborator-list-stat-item">
+                            <span class="collaborator-list-stat-value">{{ task.views_count|default(0)|number_format }}</span>
+                            <span class="collaborator-list-stat-label">浏览</span>
+                        </div>
+                        <div class="collaborator-list-stat-item">
+                            <span class="collaborator-list-stat-value">{{ task.applications_count|default(0)|number_format }}</span>
+                            <span class="collaborator-list-stat-label">申请</span>
+                        </div>
+                        <div class="collaborator-list-stat-item">
+                            <span class="collaborator-list-stat-value">
+                                {% if task.deadline %}
+                                    {% set days_left = (task.deadline - now).days %}
+                                    {{ days_left if days_left > 0 else '已截止' }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </span>
+                            <span class="collaborator-list-stat-label">剩余天数</span>
+                        </div>
+                    </div>
+                    <div class="collaborator-list-tags">
+                        {% if task.content_format %}
+                        <span class="collaborator-list-tag collaborator-list-format-tag">{{ task.content_format }}</span>
+                        {% endif %}
+                        {% if task.content_style %}
+                        <span class="collaborator-list-tag collaborator-list-style-tag">{{ task.content_style }}</span>
+                        {% endif %}
+                        {% if task.company_name %}
+                        <span class="collaborator-list-tag collaborator-list-domain-tag">{{ task.company_name }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="collaborator-list-card-actions">
+                        <a href="{{ url_for('collaborator.task_detail', id=task.id) }}" class="collaborator-list-action collaborator-list-action-view" style="text-decoration: none;">查看详情</a>
+                        <a class="collaborator-list-action collaborator-list-action-invite apply-btn" data-id="{{ task.id }}" data-advertiser-id="{{ task.advertiser_id }}" data-advertiser-name="{{ task.advertiser_name }}" style="text-decoration: none;">邀请合作</a>
+                        <button class="collaborator-list-favorite {{ 'active' if task.id in favorite_task_ids else '' }}" data-id="{{ task.id }}">
+                            <i class="bi {{ 'bi-heart-fill' if task.id in favorite_task_ids else 'bi-heart' }}"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="collaborator-list-empty">
+                <i class="bi bi-search"></i>
+                <h3 class="collaborator-list-empty-title">暂无找到合适的广告任务</h3>
+                <p class="collaborator-list-empty-text">调整搜索条件或稍后再试，我们正在不断更新广告任务库</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- 分页 -->
+    {% if ad_tasks and ad_tasks|length > 0 %}
+    <div id="pagination-anchor" class="pagination-container">
+        {{ pagination.links }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/components/pagination.js') }}"></script>
+<script src="{{ url_for('static', filename='js/components/modal.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 使用通用分页处理组件
+    new PaginationHandler('.pagination-container', 'pagination-anchor', 'task_scroll_position');
+    
+    // 处理收藏按钮点击事件
+    const favoriteButtons = document.querySelectorAll('.collaborator-list-favorite');
+    favoriteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const taskId = this.getAttribute('data-id');
+            this.classList.toggle('active');
+            if (this.classList.contains('active')) {
+                this.innerHTML = '<i class="bi bi-heart-fill"></i>';
+                // 可以添加AJAX请求来保存收藏状态
+                fetch(`/collaborator/api/favorite/add/${taskId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log('收藏成功');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            } else {
+                this.innerHTML = '<i class="bi bi-heart"></i>';
+                // 可以添加AJAX请求来取消收藏状态
+                fetch(`/collaborator/api/favorite/remove/${taskId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log('取消收藏成功');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        });
+    });
+    
+    // 处理邀请合作按钮点击事件
+    const applyButtons = document.querySelectorAll('.apply-btn');
+    applyButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const taskId = this.getAttribute('data-id');
+            const advertiserId = this.getAttribute('data-advertiser-id');
+            const advertiserName = this.getAttribute('data-advertiser-name');
+            
+            // 打开邀请合作模态框
+            modalManager.open({
+                title: '邀请合作',
+                content: `
+                    <div class="modal-form">
+                        <div class="modal-form-group">
+                            <label for="request-content" class="modal-form-label">申请说明：</label>
+                            <div class="modal-quicktext-container">
+                                <div class="modal-quicktext-title">快捷语句：</div>
+                                <div class="modal-quicktext-options">
+                                    <div class="modal-quicktext-option" data-text="我的粉丝群体与您的目标受众高度重合，期待能达成合作。">目标受众</div>
+                                    <div class="modal-quicktext-option" data-text="我曾成功完成多个相似领域的推广，有丰富的内容创作经验。">丰富经验</div>
+                                    <div class="modal-quicktext-option" data-text="我可以提供创新的内容策划方案，为您的产品带来不一样的传播效果。">创新方案</div>
+                                    <div class="modal-quicktext-option" data-text="我的内容风格与贵公司的品牌调性非常契合，希望有机会合作。">风格契合</div>
+                                </div>
+                            </div>
+                            <textarea id="request-content" class="modal-form-text" placeholder="请输入申请说明，告诉广告主为什么选择您..."></textarea>
+                        </div>
+                    </div>
+                `,
+                size: 'md',
+                onSubmit: function(e, form) {
+                    const requestContent = document.getElementById('request-content').value.trim();
+                    if (!requestContent) {
+                        modalManager.showError('请输入申请说明');
+                        return;
+                    }
+                    
+                    // 显示加载中
+                    modalManager.showLoading('提交申请中...');
+                    
+                    // 发送AJAX请求
+                    fetch('/collaborator/api/apply_task', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            task_id: taskId,
+                            advertiser_id: advertiserId,
+                            request_content: requestContent
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            modalManager.showSuccess('申请已成功提交，请等待广告主回复', function() {
+                                window.location.href = '/collaborator/collaboration_requests/sent';
+                            }, 1500);
+                        } else {
+                            modalManager.showError(data.message || '申请提交失败，请稍后重试');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        modalManager.showError('网络错误，请稍后重试');
+                    });
+                }
+            });
+            
+            // 添加底部按钮
+            modalManager.addFooter([
+                {
+                    text: '取消',
+                    className: 'modal-btn-secondary',
+                    onClick: function(e, modal) {
+                        modal.close();
+                    }
+                },
+                {
+                    text: '提交申请',
+                    className: 'modal-btn-primary',
+                    onClick: function(e, modal) {
+                        const requestContent = document.getElementById('request-content').value.trim();
+                        if (!requestContent) {
+                            modalManager.showError('请输入申请说明');
+                            return;
+                        }
+                        
+                        // 显示加载中
+                        modalManager.showLoading('提交申请中...');
+                        
+                        // 发送AJAX请求
+                        fetch('/collaborator/api/apply_task', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                task_id: taskId,
+                                advertiser_id: advertiserId,
+                                request_content: requestContent
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                modalManager.showSuccess('申请已成功提交，请等待广告主回复', function() {
+                                    window.location.href = '/collaborator/collaboration_requests/sent';
+                                }, 1500);
+                            } else {
+                                modalManager.showError(data.message || '申请提交失败，请稍后重试');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            modalManager.showError('网络错误，请稍后重试');
+                        });
+                    }
+                }
+            ]);
+            
+            // 添加快捷语句点击事件
+            const quickTextOptions = document.querySelectorAll('.modal-quicktext-option');
+            const messageTextarea = document.getElementById('request-content');
+            
+            quickTextOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    const text = option.getAttribute('data-text');
+                    
+                    // 如果文本域已有内容，则在末尾添加换行后再添加快捷语句
+                    if (messageTextarea.value.trim()) {
+                        messageTextarea.value = messageTextarea.value.trim() + '\n\n' + text;
+                    } else {
+                        messageTextarea.value = text;
+                    }
+                    
+                    // 聚焦文本域，使用户可以继续编辑
+                    messageTextarea.focus();
+                    
+                    // 为被点击的快捷语句添加动画效果
+                    option.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        option.style.transform = '';
+                    }, 200);
+                });
+            });
+        });
+    });
+});
+</script>
+{% endblock %} 

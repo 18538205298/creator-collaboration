@@ -1,0 +1,133 @@
+{% extends "advertiser/messages/base.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/collaboration_request_card.css') }}">
+{% endblock %}
+
+{% block messages_content %}
+<div class="request-list-container">
+    <div class="request-list-group">
+        <h2 class="request-list-group-title">
+            <i class="bi bi-person-heart"></i> 我的关注列表
+        </h2>
+        
+        <div class="request-list-row">
+            {% if following_list and following_list|length > 0 %}
+                {% for collaborator in following_list %}
+                    <div class="request-card" data-id="{{ collaborator.id }}">
+                        <div class="request-card-header">
+                            {% if collaborator.avatar_url and collaborator.avatar_url != 'default_collaborator.png' %}
+                                <img src="{{ url_for('static', filename='uploads/avatars/' + collaborator.avatar_url) }}" alt="{{ collaborator.username }}" class="request-card-avatar">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='img/default_collaborator.png') }}" alt="{{ collaborator.username }}" class="request-card-avatar">
+                            {% endif %}
+                            
+                            <div class="request-card-header-info">
+                                <div class="request-card-title">{{ collaborator.username }}</div>
+                                <div class="request-card-meta">
+                                    <div class="request-card-platform">
+                                        <i class="bi bi-broadcast"></i> {{ collaborator.platform }}
+                                    </div>
+                                    <span class="collaborator-tag content-style-tag" style="font-size: 10px; padding: 1px 6px;">
+                                        <i class="bi bi-palette"></i> {{ collaborator.content_style }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="request-card-body">
+                            <div class="request-card-task-title">
+                                <i class="bi bi-graph-up"></i> 统计数据
+                            </div>
+                            <div class="request-card-message">
+                                粉丝: {{ collaborator.followers_count|number_format }} | 历史合作: {{ collaborator.previous_collaboration_count }}
+                            </div>
+                        </div>
+                        
+                        <div class="request-card-footer">
+                            <div class="request-card-actions">
+                                <a href="{{ url_for('advertiser.collaborator_detail', id=collaborator.id) }}" class="request-card-action-btn request-card-view-btn" style="text-decoration: none;">
+                                    <i class="bi bi-eye"></i> 查看资料
+                                </a>
+                                <button class="request-card-action-btn request-card-reject-btn unfollow-action" data-id="{{ collaborator.id }}">
+                                    <i class="bi bi-person-dash"></i> 取消关注
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="request-list-empty">
+                    <i class="bi bi-person-plus"></i>
+                    <div class="request-list-empty-title">您还没有关注任何合作者</div>
+                    <p class="request-list-empty-text">您可以通过浏览合作者列表页面寻找并关注感兴趣的合作者，建立长期合作关系。</p>
+                    <a href="{{ url_for('advertiser.collaborator_search_list') }}" class="request-card-action-btn request-card-accept-btn mt-3">
+                        <i class="bi bi-search"></i> 寻找合作者
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 取消关注功能
+    const unfollowButtons = document.querySelectorAll('.unfollow-action');
+    unfollowButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const collaboratorId = this.getAttribute('data-id');
+            const card = this.closest('.request-card');
+            
+            if (confirm('确定要取消关注此合作者吗？')) {
+                fetch(`/advertiser/api/follow/remove/${collaboratorId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // 添加淡出动画
+                        card.style.transition = 'all 0.5s ease';
+                        card.style.opacity = '0';
+                        card.style.transform = 'translateX(-20px)';
+                        
+                        setTimeout(() => {
+                            card.remove();
+                            
+                            // 检查是否所有卡片都被移除了
+                            const remainingCards = document.querySelectorAll('.request-card');
+                            if (remainingCards.length === 0) {
+                                const listRow = document.querySelector('.request-list-row');
+                                listRow.innerHTML = `
+                                    <div class="request-list-empty">
+                                        <i class="bi bi-person-plus"></i>
+                                        <div class="request-list-empty-title">您还没有关注任何合作者</div>
+                                        <p class="request-list-empty-text">您可以通过浏览合作者列表页面寻找并关注感兴趣的合作者，建立长期合作关系。</p>
+                                        <a href="{{ url_for('advertiser.collaborator_search_list') }}" class="request-card-action-btn request-card-accept-btn mt-3">
+                                            <i class="bi bi-search"></i> 寻找合作者
+                                        </a>
+                                    </div>
+                                `;
+                            }
+                        }, 500);
+                    } else {
+                        alert('取消关注失败，请稍后重试');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('网络错误，请稍后重试');
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

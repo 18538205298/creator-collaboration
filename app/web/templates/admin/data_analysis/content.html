@@ -1,0 +1,656 @@
+{% extends "admin/data_analysis/base.html" %}
+
+{% block title %}管理员 - 内容分析{% endblock %}
+
+{% set active_tab = 'content' %}
+
+{% block tab_content %}
+<div class="container-fluid px-4 py-3">
+    <!-- 顶部概览卡片 -->
+    <div class="row mb-4">
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="profile-inner-card">
+                <div class="profile-inner-card-header">
+                    <div class="profile-inner-card-icon" style="background: linear-gradient(135deg, #4b6cb7, #182848);">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                    <h5 class="profile-inner-card-title">广告任务总数</h5>
+                </div>
+                <div class="profile-inner-card-content">
+                    <div class="profile-stat-value" id="total-tasks-count">0</div>
+                    <div class="profile-stat-label">个任务</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="profile-inner-card">
+                <div class="profile-inner-card-header">
+                    <div class="profile-inner-card-icon" style="background: linear-gradient(135deg, #11998e, #38ef7d);">
+                        <i class="bi bi-eye"></i>
+                    </div>
+                    <h5 class="profile-inner-card-title">总浏览量</h5>
+                </div>
+                <div class="profile-inner-card-content">
+                    <div class="profile-stat-value" id="total-views-count">0</div>
+                    <div class="profile-stat-label">次浏览</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="profile-inner-card">
+                <div class="profile-inner-card-header">
+                    <div class="profile-inner-card-icon" style="background: linear-gradient(135deg, #fc5c7d, #6a82fb);">
+                        <i class="bi bi-person-check"></i>
+                    </div>
+                    <h5 class="profile-inner-card-title">总申请数</h5>
+                </div>
+                <div class="profile-inner-card-content">
+                    <div class="profile-stat-value" id="total-applications-count">0</div>
+                    <div class="profile-stat-label">次申请</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="profile-inner-card">
+                <div class="profile-inner-card-header">
+                    <div class="profile-inner-card-icon" style="background: linear-gradient(135deg, #f857a6, #ff5858);">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                    <h5 class="profile-inner-card-title">平均预算</h5>
+                </div>
+                <div class="profile-inner-card-content">
+                    <div class="profile-stat-value" id="average-budget">¥0.00</div>
+                    <div class="profile-stat-label">元/任务</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- 左侧图表 - 内容发布趋势 -->
+        <div class="col-lg-6 mb-4">
+            <div class="profile-info-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>内容发布趋势</span>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-light active" data-period="6">近6个月</button>
+                        <button type="button" class="btn btn-outline-light" data-period="12">近1年</button>
+                    </div>
+                </div>
+                <div class="card-body" style="height: 400px; display: flex; justify-content: center; align-items: center;"> 
+                    <canvas id="content-trend-chart" ></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右侧图表 - 任务状态分布 -->
+        <div class="col-lg-6 mb-4">
+            <div class="profile-info-card">
+                <div class="card-header">
+                    <span>任务状态分布</span>
+                </div>
+                <div class="card-body" style=" height:400px; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="task-status-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- 左侧图表 - 内容格式分布 -->
+        <div class="col-lg-6 mb-4">
+            <div class="profile-info-card">
+                <div class="card-header">内容格式分布</div>
+                <div class="card-body" style="height: 400px; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="content-format-chart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右侧图表 - 内容风格分布 -->
+        <div class="col-lg-6 mb-4">
+            <div class="profile-info-card">
+                <div class="card-header">内容风格分布</div>
+                <div class="card-body" style="height: 400px; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="content-style-chart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- 左侧图表 - 预算区间分布 -->
+        <div class="col-lg-6 mb-4">
+            <div class="profile-info-card">
+                <div class="card-header">预算区间分布</div>
+                <div class="card-body" style="height: 400px; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="budget-range-chart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右侧图表 - 平台要求分布 -->
+        <div class="col-lg-6 mb-4">
+            <div class="profile-info-card">
+                <div class="card-header">平台要求分布</div>
+                <div class="card-body" style="height: 400px; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="platform-requirements-chart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        console.log('开始加载内容数据分析页面');
+        
+        // 获取内容统计数据
+        console.log('请求内容统计数据: /admin/api/content/stats');
+        const statsResponse = await fetch('/admin/api/content/stats');
+        if (!statsResponse.ok) {
+            throw new Error(`统计数据请求失败: ${statsResponse.status} ${statsResponse.statusText}`);
+        }
+        const statsData = await statsResponse.json();
+        console.log('内容统计数据:', statsData);
+        
+        if (statsData.success) {
+            // 更新顶部统计卡片
+            updateStatsCards(statsData.data);
+        }
+        
+        // 获取内容发布趋势数据
+        console.log('请求内容发布趋势数据: /admin/api/content/trend?months=6');
+        const trendResponse = await fetch('/admin/api/content/trend?months=6');
+        if (!trendResponse.ok) {
+            throw new Error(`趋势数据请求失败: ${trendResponse.status} ${trendResponse.statusText}`);
+        }
+        const trendData = await trendResponse.json();
+        console.log('内容发布趋势数据:', trendData);
+        
+        if (trendData.success) {
+            // 生成趋势图表
+            generateContentTrendChart(trendData.data);
+        }
+        
+        // 获取任务状态分布数据
+        console.log('请求任务状态分布数据: /admin/api/content/status_distribution');
+        const statusResponse = await fetch('/admin/api/content/status_distribution');
+        if (!statusResponse.ok) {
+            throw new Error(`状态分布数据请求失败: ${statusResponse.status} ${statusResponse.statusText}`);
+        }
+        const statusData = await statusResponse.json();
+        console.log('任务状态分布数据:', statusData);
+        
+        if (statusData.success) {
+            // 生成状态分布图表
+            generateTaskStatusChart(statusData.data);
+        }
+        
+        // 获取内容格式分布数据
+        console.log('请求内容格式分布数据: /admin/api/content/format_distribution');
+        const formatResponse = await fetch('/admin/api/content/format_distribution');
+        if (!formatResponse.ok) {
+            throw new Error(`格式分布数据请求失败: ${formatResponse.status} ${formatResponse.statusText}`);
+        }
+        const formatData = await formatResponse.json();
+        console.log('内容格式分布数据:', formatData);
+        
+        if (formatData.success) {
+            // 生成内容格式分布图表
+            generateContentFormatChart(formatData.data);
+        }
+        
+        // 获取内容风格分布数据
+        console.log('请求内容风格分布数据: /admin/api/content/style_distribution');
+        const styleResponse = await fetch('/admin/api/content/style_distribution');
+        if (!styleResponse.ok) {
+            throw new Error(`风格分布数据请求失败: ${styleResponse.status} ${styleResponse.statusText}`);
+        }
+        const styleData = await styleResponse.json();
+        console.log('内容风格分布数据:', styleData);
+        
+        if (styleData.success) {
+            // 生成内容风格分布图表
+            generateContentStyleChart(styleData.data);
+        }
+
+        // 获取预算区间分布数据
+        console.log('请求预算区间分布数据: /admin/api/content/budget_distribution');
+        const budgetResponse = await fetch('/admin/api/content/budget_distribution');
+        if (!budgetResponse.ok) {
+            throw new Error(`预算分布数据请求失败: ${budgetResponse.status} ${budgetResponse.statusText}`);
+        }
+        const budgetData = await budgetResponse.json();
+        console.log('预算区间分布数据:', budgetData);
+        
+        if (budgetData.success) {
+            // 生成预算区间分布图表
+            generateBudgetRangeChart(budgetData.data);
+        }
+
+        // 获取平台要求分布数据
+        console.log('请求平台要求分布数据: /admin/api/content/platform_distribution');
+        const platformResponse = await fetch('/admin/api/content/platform_distribution');
+        if (!platformResponse.ok) {
+            throw new Error(`平台分布数据请求失败: ${platformResponse.status} ${platformResponse.statusText}`);
+        }
+        const platformData = await platformResponse.json();
+        console.log('平台要求分布数据:', platformData);
+        
+        if (platformData.success) {
+            // 生成平台要求分布图表
+            generatePlatformRequirementsChart(platformData.data);
+        }
+        
+        // 注册按钮事件 - 内容发布趋势时间范围切换
+        document.querySelectorAll('[data-period]').forEach(button => {
+            button.addEventListener('click', async function() {
+                const period = parseInt(this.getAttribute('data-period'));
+                // 先移除所有的active类
+                document.querySelectorAll('[data-period]').forEach(btn => btn.classList.remove('active'));
+                // 为当前按钮添加active类
+                this.classList.add('active');
+                
+                // 获取并更新图表
+                console.log(`请求内容发布趋势数据: /admin/api/content/trend?months=${period}`);
+                try {
+                    const response = await fetch(`/admin/api/content/trend?months=${period}`);
+                    if (!response.ok) {
+                        throw new Error(`趋势数据请求失败: ${response.status} ${response.statusText}`);
+                    }
+                    const data = await response.json();
+                    console.log('内容发布趋势数据:', data);
+                    if (data.success) {
+                        generateContentTrendChart(data.data);
+                    }
+                } catch (error) {
+                    console.error('获取内容发布趋势数据失败:', error);
+                }
+            });
+        });
+    } catch (error) {
+        console.error('获取内容数据失败:', error);
+        // 显示错误信息给用户
+        document.querySelectorAll('.profile-info-card .card-body').forEach(cardBody => {
+            cardBody.innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">加载数据失败</h4>
+                    <p>${error.message}</p>
+                    <hr>
+                    <p class="mb-0">请检查浏览器控制台获取详细错误信息</p>
+                </div>
+            `;
+        });
+    }
+});
+
+function updateStatsCards(stats) {
+    // 更新广告任务总数
+    document.getElementById('total-tasks-count').textContent = stats.total_tasks || 0;
+    
+    // 更新总浏览量
+    document.getElementById('total-views-count').textContent = stats.total_views || 0;
+    
+    // 更新总申请数
+    document.getElementById('total-applications-count').textContent = stats.total_applications || 0;
+    
+    // 更新平均预算
+    document.getElementById('average-budget').textContent = '¥' + (stats.average_budget || 0).toFixed(2);
+}
+
+function generateContentTrendChart(data) {
+    // 生成图表
+    const ctx = document.getElementById('content-trend-chart').getContext('2d');
+    
+    // 销毁旧图表（如果存在）
+    if (window.contentTrendChart) {
+        window.contentTrendChart.destroy();
+    }
+    
+    window.contentTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [
+                {
+                    label: '新发布任务',
+                    data: data.published_data,
+                    borderColor: '#4b6cb7',
+                    backgroundColor: 'rgba(75, 108, 183, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: '已完成任务',
+                    data: data.completed_data,
+                    borderColor: '#11998e',
+                    backgroundColor: 'rgba(17, 153, 142, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.parsed.y + '个';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: '任务数量'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function generateTaskStatusChart(data) {
+    // 生成图表
+    const ctx = document.getElementById('task-status-chart').getContext('2d');
+    
+    // 销毁旧图表（如果存在）
+    if (window.taskStatusChart) {
+        window.taskStatusChart.destroy();
+    }
+
+    // 状态颜色映射
+    const statusColors = {
+        'draft': 'rgba(108, 117, 125, 0.8)',      // 灰色
+        'published': 'rgba(0, 123, 255, 0.8)',    // 蓝色
+        'in_progress': 'rgba(255, 193, 7, 0.8)',  // 黄色
+        'completed': 'rgba(40, 167, 69, 0.8)',    // 绿色
+        'cancelled': 'rgba(220, 53, 69, 0.8)'     // 红色
+    };
+
+    // 构建颜色数组
+    const backgroundColor = data.labels.map(label => statusColors[label] || 'rgba(108, 117, 125, 0.8)');
+    const borderColor = backgroundColor.map(color => color.replace('0.8', '1'));
+    
+    window.taskStatusChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: data.labels.map(label => {
+                // 状态标签翻译
+                const statusMap = {
+                    'draft': '草稿',
+                    'published': '已发布',
+                    'in_progress': '进行中',
+                    'completed': '已完成',
+                    'cancelled': '已取消'
+                };
+                return statusMap[label] || label;
+            }),
+            datasets: [{
+                data: data.counts,
+                backgroundColor: backgroundColor,
+                borderColor: borderColor,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = context.raw;
+                            const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                            return context.label + ': ' + value + '个 (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function generateContentFormatChart(data) {
+    // 生成图表
+    const ctx = document.getElementById('content-format-chart').getContext('2d');
+    
+    // 销毁旧图表（如果存在）
+    if (window.contentFormatChart) {
+        window.contentFormatChart.destroy();
+    }
+    
+    // 确保有数据的情况下才生成图表
+    if (!data.labels || data.labels.length === 0) {
+        document.getElementById('content-format-chart').parentNode.innerHTML = 
+            '<div class="text-center py-5"><h5 class="text-muted">暂无内容格式数据</h5></div>';
+        return;
+    }
+    
+    window.contentFormatChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: data.labels.map(label => label || '未指定'),
+            datasets: [{
+                data: data.counts,
+                backgroundColor: [
+                    'rgba(75, 108, 183, 0.8)',
+                    'rgba(17, 153, 142, 0.8)',
+                    'rgba(252, 92, 125, 0.8)',
+                    'rgba(248, 87, 166, 0.8)',
+                    'rgba(19, 186, 254, 0.8)',
+                    'rgba(255, 193, 7, 0.8)',
+                    'rgba(108, 117, 125, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(75, 108, 183, 1)',
+                    'rgba(17, 153, 142, 1)',
+                    'rgba(252, 92, 125, 1)',
+                    'rgba(248, 87, 166, 1)',
+                    'rgba(19, 186, 254, 1)',
+                    'rgba(255, 193, 7, 1)',
+                    'rgba(108, 117, 125, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = context.raw;
+                            const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                            return context.label + ': ' + value + '个 (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function generateContentStyleChart(data) {
+    // 生成图表
+    const ctx = document.getElementById('content-style-chart').getContext('2d');
+    
+    // 销毁旧图表（如果存在）
+    if (window.contentStyleChart) {
+        window.contentStyleChart.destroy();
+    }
+    
+    // 确保有数据的情况下才生成图表
+    if (!data.labels || data.labels.length === 0) {
+        document.getElementById('content-style-chart').parentNode.innerHTML = 
+            '<div class="text-center py-5"><h5 class="text-muted">暂无内容风格数据</h5></div>';
+        return;
+    }
+    
+    window.contentStyleChart = new Chart(ctx, {
+        type: 'polarArea',
+        data: {
+            labels: data.labels.map(label => label || '未指定'),
+            datasets: [{
+                data: data.counts,
+                backgroundColor: [
+                    'rgba(75, 108, 183, 0.7)',
+                    'rgba(17, 153, 142, 0.7)',
+                    'rgba(252, 92, 125, 0.7)',
+                    'rgba(248, 87, 166, 0.7)',
+                    'rgba(19, 186, 254, 0.7)',
+                    'rgba(255, 193, 7, 0.7)',
+                    'rgba(108, 117, 125, 0.7)',
+                    'rgba(40, 167, 69, 0.7)',
+                    'rgba(220, 53, 69, 0.7)',
+                    'rgba(111, 66, 193, 0.7)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.raw + '个';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function generateBudgetRangeChart(data) {
+    // 生成图表
+    const ctx = document.getElementById('budget-range-chart').getContext('2d');
+    
+    // 销毁旧图表（如果存在）
+    if (window.budgetRangeChart) {
+        window.budgetRangeChart.destroy();
+    }
+    
+    window.budgetRangeChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.ranges,
+            datasets: [{
+                label: '任务数量',
+                data: data.counts,
+                backgroundColor: 'rgba(75, 108, 183, 0.7)',
+                borderColor: 'rgba(75, 108, 183, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: '任务数量'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: '预算范围'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function generatePlatformRequirementsChart(data) {
+    // 生成图表
+    const ctx = document.getElementById('platform-requirements-chart').getContext('2d');
+    
+    // 销毁旧图表（如果存在）
+    if (window.platformRequirementsChart) {
+        window.platformRequirementsChart.destroy();
+    }
+    
+    // 确保有数据的情况下才生成图表
+    if (!data.platforms || data.platforms.length === 0) {
+        document.getElementById('platform-requirements-chart').parentNode.innerHTML = 
+            '<div class="text-center py-5"><h5 class="text-muted">暂无平台要求数据</h5></div>';
+        return;
+    }
+    
+    window.platformRequirementsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.platforms.map(platform => platform || '未指定'),
+            datasets: [{
+                label: '任务数量',
+                data: data.counts,
+                backgroundColor: [
+                    'rgba(75, 108, 183, 0.7)',
+                    'rgba(17, 153, 142, 0.7)',
+                    'rgba(252, 92, 125, 0.7)',
+                    'rgba(248, 87, 166, 0.7)',
+                    'rgba(19, 186, 254, 0.7)',
+                    'rgba(255, 193, 7, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(75, 108, 183, 1)',
+                    'rgba(17, 153, 142, 1)',
+                    'rgba(252, 92, 125, 1)',
+                    'rgba(248, 87, 166, 1)',
+                    'rgba(19, 186, 254, 1)',
+                    'rgba(255, 193, 7, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: '任务数量'
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

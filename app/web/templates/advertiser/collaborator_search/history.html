@@ -1,0 +1,124 @@
+{% extends "advertiser/collaborator_search/base.html" %}
+
+{% block collaborator_search_content %}
+<div class="collaborator-list-container">
+    <!-- 页面标题和操作按钮 -->
+    <div class="collaborator-list-header">
+        <h1 class="collaborator-list-title">最近浏览的合作者</h1>
+        <div class="collaborator-list-actions">
+            <a href="{{ url_for('advertiser.collaborator_search_list') }}" class="collaborator-list-action-btn">
+                <i class="bi bi-search"></i> 搜索更多合作者
+            </a>
+        </div>
+    </div>
+    
+    <!-- 合作者列表 -->
+    <div class="collaborator-list-grid">
+        {% if collaborators %}
+            {% for collaborator in collaborators %}
+            <div class="collaborator-list-card">
+                <div class="collaborator-list-card-header">
+                    {% if collaborator.avatar_url and collaborator.avatar_url != 'default_collaborator.png' %}
+                    <img src="{{ url_for('static', filename='uploads/avatars/' + collaborator.avatar_url) }}" alt="{{ collaborator.username }}" class="collaborator-list-avatar">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='img/default_collaborator.png') }}" alt="{{ collaborator.username }}" class="collaborator-list-avatar">
+                    {% endif %}
+                    <div class="collaborator-list-card-info">
+                        <div class="collaborator-list-name">{{ collaborator.username }}</div>
+                        <div class="collaborator-list-platform-tag">{{ collaborator.platform or '未设置平台' }}</div>
+                        <div class="collaborator-list-followers">粉丝数: <span>{{ collaborator.followers_count|default(0)|number_format }}</span></div>
+                    </div>
+                </div>
+                <div class="collaborator-list-card-body">
+                    <div class="collaborator-list-stats">
+                        <div class="collaborator-list-stat-item">
+                            <span class="collaborator-list-stat-value">{{ collaborator.likes_count|default(0)|number_format }}</span>
+                            <span class="collaborator-list-stat-label">获赞</span>
+                        </div>
+                        <div class="collaborator-list-stat-item">
+                            <span class="collaborator-list-stat-value">{{ collaborator.comments_count|default(0)|number_format }}</span>
+                            <span class="collaborator-list-stat-label">评论</span>
+                        </div>
+                        <div class="collaborator-list-stat-item">
+                            <span class="collaborator-list-stat-value">{{ collaborator.shares_count|default(0)|number_format }}</span>
+                            <span class="collaborator-list-stat-label">分享</span>
+                        </div>
+                    </div>
+                    <div class="collaborator-list-tags">
+                        {% if collaborator.content_domain %}
+                        <span class="collaborator-list-tag collaborator-list-domain-tag">{{ collaborator.content_domain }}</span>
+                        {% endif %}
+                        {% if collaborator.content_style %}
+                        <span class="collaborator-list-tag collaborator-list-style-tag">{{ collaborator.content_style }}</span>
+                        {% endif %}
+                        {% if collaborator.content_format %}
+                        <span class="collaborator-list-tag collaborator-list-format-tag">{{ collaborator.content_format }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="collaborator-list-meta">
+                        <span class="collaborator-list-view-time">
+                            <i class="bi bi-clock"></i> 浏览时间: {{ collaborator.last_viewed_at|date_time }}
+                        </span>
+                    </div>
+                    <div class="collaborator-list-card-actions">
+                        <a href="{{ url_for('advertiser.collaborator_detail', id=collaborator.id) }}" class="collaborator-list-action collaborator-list-action-view" style="text-decoration: none;">查看详情</a>
+                        <a class="collaborator-list-action collaborator-list-action-invite invite-btn" data-id="{{ collaborator.id }}" data-name="{{ collaborator.username }}" style="text-decoration: none;">邀请合作</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="collaborator-list-empty">
+                <i class="bi bi-clock-history"></i>
+                <h3 class="collaborator-list-empty-title">您还没有浏览过任何合作者</h3>
+                <p class="collaborator-list-empty-text">可以在合作者列表中找到您感兴趣的合作者并查看详情</p>
+                <a href="{{ url_for('advertiser.collaborator_search_list') }}" class="btn btn-primary mt-3">
+                    <i class="bi bi-search me-1"></i> 寻找合作者
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- 分页 -->
+    {% if collaborators and collaborators|length > 0 %}
+    <div id="pagination-anchor" class="collaborator-list-pagination">
+        {{ pagination.links }}
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.collaborator-list-meta {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #667085;
+    text-align: center;
+}
+.collaborator-list-view-time {
+    display: block;
+    padding: 5px 0;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/components/pagination.js') }}"></script>
+<script src="{{ url_for('static', filename='js/components/modal.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 使用通用分页处理组件
+    new PaginationHandler('.collaborator-list-pagination', 'pagination-anchor', 'history_collaborator_scroll_position');
+    
+    // 处理邀请按钮点击事件
+    const inviteButtons = document.querySelectorAll('.invite-btn');
+    inviteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const collaboratorId = this.getAttribute('data-id');
+            const collaboratorName = this.getAttribute('data-name');
+            window.invitationModal.open(collaboratorId, collaboratorName);
+        });
+    });
+});
+</script>
+{% endblock %} 

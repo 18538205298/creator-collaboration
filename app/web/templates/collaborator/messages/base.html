@@ -1,0 +1,49 @@
+{% extends "collaborator/base.html" %}
+
+{% block title %}合作者 - 消息中心{% endblock %}
+
+{% block head %}
+{{ super() }}
+<!-- 先引用通用组件样式 -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/messages.css') }}">
+<!-- 再引用专有样式，以便覆盖 -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/collaborator/messages/style.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid mt-4">
+    <h2>消息中心</h2>
+    
+    <!-- 横向导航栏 -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'following' %}active{% endif %}" href="{{ url_for('collaborator.messages_following') }}">
+                <i class="bi bi-person-plus"></i> 我的关注
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'followers' %}active{% endif %}" href="{{ url_for('collaborator.messages_followers') }}">
+                <i class="bi bi-people"></i> 我的粉丝
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'inbox' %}active{% endif %}" href="{{ url_for('collaborator.messages_inbox') }}">
+                <i class="bi bi-envelope"></i> 消息
+                {% if total_unread_count > 0 %}
+                <span class="badge rounded-pill bg-danger">{{ total_unread_count }}</span>
+                {% endif %}
+            </a>
+        </li>
+    </ul>
+
+    <!-- 内容区块 -->
+    <div class="messages-content">
+        {% block messages_content %}
+        <!-- 默认内容 -->
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> 请从上方选择您要查看的内容
+        </div>
+        {% endblock %}
+    </div>
+</div>
+{% endblock %}

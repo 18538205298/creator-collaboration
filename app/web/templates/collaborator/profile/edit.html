@@ -1,0 +1,241 @@
+{% extends "collaborator/profile/base.html" %}
+
+{% block profile_content %}
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="profile-info-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-person"></i> 基本信息修改</span>
+                <div>
+                    <span class="text-muted small">上次更新：{{ collaborator.last_login|default('') }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('collaborator.profile_save') }}" method="POST" enctype="multipart/form-data" id="profile-form">
+                    <div class="profile-info-row">
+                        <div class="profile-avatar-container">
+                            {% if collaborator.avatar_url and collaborator.avatar_url != 'default_collaborator.png' %}
+                                {% if collaborator.avatar_url.startswith('/') %}
+                                <img src="{{ collaborator.avatar_url }}" alt="Avatar" class="profile-avatar">
+                                {% else %}
+                                <img src="{{ url_for('static', filename='uploads/avatars/' + collaborator.avatar_url) }}" alt="Avatar" class="profile-avatar">
+                                {% endif %}
+                            {% else %}
+                            <img src="{{ url_for('static', filename='img/default_collaborator.png') }}" alt="Avatar" class="profile-avatar">
+                            {% endif %}
+                        </div>
+                        <div class="profile-info-group">
+                            <div class="mb-3">
+                                <label for="avatar" class="profile-info-label">更新头像</label>
+                                <div class="d-flex align-items-center">
+                                    <div class="upload-btn-wrapper">
+                                        <button class="profile-action-btn" onclick="document.getElementById('avatar').click(); return false;">
+                                            <i class="bi bi-camera"></i> 上传新头像
+                                        </button>
+                                        <input type="file" name="avatar_upload" id="avatar" accept="image/*" style="display: none;" onchange="previewImage(this, 'avatar-preview')">
+                                    </div>
+                                </div>
+                                <small class="form-text text-muted">支持JPG、PNG格式</small>
+                                <div id="avatar-preview-container" class="mt-2 d-none">
+                                    <p class="text-success"><i class="bi bi-check-circle"></i> 图片已选择，保存后生效</p>
+                                </div>
+                            </div>
+                            <div class="profile-info-item">
+                                <label for="username" class="profile-info-label">用户名</label>
+                                <input type="text" class="form-control" id="username" value="{{ collaborator.username }}" disabled>
+                                <small class="form-text text-muted">用户名不可修改</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-inner-card">
+                        <div class="profile-inner-card-header">
+                            <div class="profile-inner-card-icon">
+                                <i class="bi bi-person-vcard"></i>
+                            </div>
+                            <h3 class="profile-inner-card-title">基础信息</h3>
+                        </div>
+                        <div class="profile-inner-card-content">
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="profile-info-label">电子邮箱</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ collaborator.email }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="phone" class="profile-info-label">联系电话</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone_number" value="{{ collaborator.phone_number }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="platform" class="profile-info-label">内容平台</label>
+                                    <select class="form-select" id="platform" name="platform">
+                                        <option {% if collaborator.platform == '抖音' %}selected{% endif %}>抖音</option>
+                                        <option {% if collaborator.platform == '小红书' %}selected{% endif %}>小红书</option>
+                                        <option {% if collaborator.platform == '微博' %}selected{% endif %}>微博</option>
+                                        <option {% if collaborator.platform == 'B站' %}selected{% endif %}>B站</option>
+                                        <option {% if collaborator.platform == '知乎' %}selected{% endif %}>知乎</option>
+                                        <option {% if collaborator.platform == '豆瓣' %}selected{% endif %}>豆瓣</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="followers_count" class="profile-info-label">粉丝数量</label>
+                                    <input type="number" class="form-control" id="followers_count" name="followers_count" value="{{ collaborator.followers_count|default(0) }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-inner-card">
+                        <div class="profile-inner-card-header">
+                            <div class="profile-inner-card-icon">
+                                <i class="bi bi-briefcase"></i>
+                            </div>
+                            <h3 class="profile-inner-card-title">内容特征</h3>
+                        </div>
+                        <div class="profile-inner-card-content">
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-3">
+                                    <label for="content_format" class="profile-info-label">内容形式</label>
+                                    <select class="form-select" id="content_format" name="content_format">
+                                        <option {% if collaborator.content_format == '视频' %}selected{% endif %}>视频</option>
+                                        <option {% if collaborator.content_format == '图文' %}selected{% endif %}>图文</option>
+                                        <option {% if collaborator.content_format == '音频' %}selected{% endif %}>音频</option>
+                                        <option {% if collaborator.content_format == '问答' %}selected{% endif %}>问答</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="content_style" class="profile-info-label">内容风格</label>
+                                    <select class="form-select" id="content_style" name="content_style">
+                                        <option {% if collaborator.content_style == '励志' %}selected{% endif %}>励志</option>
+                                        <option {% if collaborator.content_style == '文艺' %}selected{% endif %}>文艺</option>
+                                        <option {% if collaborator.content_style == '幽默' %}selected{% endif %}>幽默</option>
+                                        <option {% if collaborator.content_style == '实用' %}selected{% endif %}>实用</option>
+                                        <option {% if collaborator.content_style == '专业' %}selected{% endif %}>专业</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <label for="content_domain" class="profile-info-label">内容领域</label>
+                                    <select class="form-select" id="content_domain" name="content_domain">
+                                        <option {% if collaborator.content_domain == '美食' %}selected{% endif %}>美食</option>
+                                        <option {% if collaborator.content_domain == '教育' %}selected{% endif %}>教育</option>
+                                        <option {% if collaborator.content_domain == '数码' %}selected{% endif %}>数码</option>
+                                        <option {% if collaborator.content_domain == '游戏' %}selected{% endif %}>游戏</option>
+                                        <option {% if collaborator.content_domain == '旅游' %}selected{% endif %}>旅游</option>
+                                        <option {% if collaborator.content_domain == '运动' %}selected{% endif %}>运动</option>
+                                        <option {% if collaborator.content_domain == '美妆' %}selected{% endif %}>美妆</option>
+                                        <option {% if collaborator.content_domain == '时尚' %}selected{% endif %}>时尚</option>
+                                        <option {% if collaborator.content_domain == '健康' %}selected{% endif %}>健康</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <a href="{{ url_for('collaborator.profile_basic') }}" class="btn btn-outline-secondary me-2">取消</a>
+                        <button type="submit" class="profile-action-btn">
+                            <i class="bi bi-check2"></i> 保存修改
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-12">
+        <div class="profile-info-card">
+            <div class="card-header">
+                <i class="bi bi-shield-lock"></i> 安全设置
+            </div>
+            <div class="card-body">
+                <div class="profile-inner-card">
+                    <div class="profile-inner-card-header">
+                        <div class="profile-inner-card-icon">
+                            <i class="bi bi-shield-lock"></i>
+                        </div>
+                        <h3 class="profile-inner-card-title">账号安全选项</h3>
+                    </div>
+                    <div class="profile-inner-card-content">
+                        <form action="{{ url_for('collaborator.change_password') }}" method="POST" id="password-form">
+                            <div class="row mb-3 d-none" id="password-change-area">
+                                <div class="col-md-4 mb-3">
+                                    <label for="old_password" class="profile-info-label">当前密码</label>
+                                    <input type="password" class="form-control" id="old_password" name="old_password" placeholder="输入当前密码">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="new_password" class="profile-info-label">新密码</label>
+                                    <input type="password" class="form-control" id="new_password" name="new_password" placeholder="输入新密码">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="confirm_password" class="profile-info-label">确认新密码</label>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="再次输入新密码">
+                                </div>
+                                <div class="col-12 mb-3 text-end">
+                                    <button type="button" class="btn btn-outline-secondary me-2" id="cancel-password-change">取消</button>
+                                    <button type="submit" class="profile-action-btn">
+                                        <i class="bi bi-check2"></i> 确认修改
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                        
+                        <div class="list-group">
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0 bg-transparent mb-2">
+                                <div>
+                                    <h6 class="mb-1 fw-bold">修改密码</h6>
+                                    <p class="text-muted small mb-0">定期更新密码可以提高账号安全性</p>
+                                </div>
+                                <button class="profile-action-btn" id="show-password-change">
+                                    <i class="bi bi-key"></i> 修改
+                                </button>
+                            </div>
+                       
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 密码修改区域的显示与隐藏
+    const showPasswordChangeBtn = document.getElementById('show-password-change');
+    const cancelPasswordChangeBtn = document.getElementById('cancel-password-change');
+    const passwordChangeArea = document.getElementById('password-change-area');
+    
+    showPasswordChangeBtn.addEventListener('click', function() {
+        passwordChangeArea.classList.remove('d-none');
+        showPasswordChangeBtn.classList.add('d-none');
+    });
+    
+    cancelPasswordChangeBtn.addEventListener('click', function() {
+        passwordChangeArea.classList.add('d-none');
+        showPasswordChangeBtn.classList.remove('d-none');
+    });
+    
+    // 表单提交前检查
+    document.querySelector('form[action="{{ url_for("collaborator.profile_save") }}"]').addEventListener('submit', function(e) {
+        console.log('表单提交中...');
+        const fileInput = document.getElementById('avatar');
+        if (fileInput.files.length > 0) {
+            console.log('已选择文件: ' + fileInput.files[0].name);
+        }
+    });
+});
+
+// 预览图片
+function previewImage(input, previewId) {
+    console.log('文件选择触发');
+    const previewContainer = document.getElementById('avatar-preview-container');
+    
+    if (input.files && input.files[0]) {
+        console.log('已选择文件: ' + input.files[0].name);
+        // 显示提示信息
+        previewContainer.classList.remove('d-none');
+    } else {
+        previewContainer.classList.add('d-none');
+    }
+}
+</script>
+{% endblock %} 

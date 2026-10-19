@@ -1,0 +1,43 @@
+{% extends "dashboard_base.html" %}
+
+{% block user_name %}合作者{% endblock %}
+{% block user_role %}内容创作者{% endblock %}
+
+{% block sidebar_menu %}
+<li>
+    <a href="{{ url_for('collaborator.home') }}" style="text-decoration: none;" class="{% if request.endpoint.startswith('collaborator.home') %}active{% endif %}">
+            <i class="bi bi-house-door"></i> 首页
+        </a>
+</li>
+<li>
+    <a href="{{ url_for('collaborator.profile') }}" style="text-decoration: none;" class="{% if request.endpoint.startswith('collaborator.profile') %}active{% endif %}">
+        <i class="bi bi-person"></i> 个人资料
+    </a>
+</li>
+<li>
+    <a href="{{ url_for('collaborator.ad_opportunities') }}" style="text-decoration: none;" class="{% if request.endpoint.startswith('collaborator.ad_opportunities') %}active{% endif %}">
+        <i class="bi bi-lightbulb"></i> 广告机会
+    </a>
+</li>
+<li>
+    <a href="{{ url_for('collaborator.my_collaborations') }}" style="text-decoration: none;" class="{% if request.endpoint.startswith('collaborator.my_collaborations') %}active{% endif %}">
+        <i class="bi bi-briefcase"></i> 我的合作
+    </a>
+</li>
+<li>
+    <a href="{{ url_for('collaborator.collaboration_requests') }}" style="text-decoration: none;" class="{% if request.endpoint.startswith('collaborator.collaboration_requests') %}active{% endif %}">
+        <i class="bi bi-file-earmark-text"></i> 合作邀请
+        {% if pending_invitations_count and pending_invitations_count > 0 %}
+        <span class="badge bg-danger rounded-pill">{{ pending_invitations_count }}</span>
+        {% endif %}
+    </a>
+</li>
+<li>
+    <a href="{{ url_for('collaborator.messages') }}" style="text-decoration: none;" class="{% if request.endpoint.startswith('collaborator.messages') %}active{% endif %}">
+        <i class="bi bi-chat-dots"></i> 消息中心
+        {% if total_unread_count and total_unread_count > 0 %}
+        <span class="badge bg-danger rounded-pill">{{ total_unread_count }}</span>
+        {% endif %}
+    </a>
+</li>
+{% endblock %}

@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+
+{% block title %}广告传播合作平台 - 首页{% endblock %}
+
+{% block content %}
+<div class="bg-light min-vh-100">
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold animated-gradient" href="#">广告传播合作平台</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+            
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <a href="{{ url_for('index.login') }}" class="btn btn-outline-primary me-2 btn-glow">登录</a>
+                    <a href="{{ url_for('index.register') }}" class="btn btn-primary btn-glow">注册</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容 -->
+    <div class="container py-5">
+        <!-- 主标题卡片 -->
+        <div class="profile-info-card mb-5 shine-effect">
+            <div class="card-header">
+                <h2 class="m-0 animated-text">连接广告主与合作者的桥梁</h2>
+            </div>
+            <div class="card-body">
+                <p class="lead">我们的平台帮助广告主找到合适的合作者，让您的广告投放更加精准高效。同时，为合作者提供更多优质的广告合作机会。</p>
+            </div>
+        </div>
+
+        <!-- 优势说明 -->
+        <div class="profile-stats-container mb-5">
+            <h2 class="profile-stats-title animated-underline">我们的优势</h2>
+            <div class="profile-stats-grid">
+                <div class="profile-stat-card hover-float">
+                    <div class="feature-icon-wrapper">
+                        <i class="bi bi-graph-up feature-icon"></i>
+                    </div>
+                    <h4 class="mt-3">精准匹配</h4>
+                    <p class="small text-muted">通过智能算法，为广告主匹配最合适的合作者，提高广告投放效果。</p>
+                </div>
+                <div class="profile-stat-card hover-float">
+                    <div class="feature-icon-wrapper">
+                        <i class="bi bi-shield-check feature-icon"></i>
+                    </div>
+                    <h4 class="mt-3">安全可靠</h4>
+                    <p class="small text-muted">严格的审核机制，确保平台上的广告主和合作者资质真实可靠。</p>
+                </div>
+                <div class="profile-stat-card hover-float">
+                    <div class="feature-icon-wrapper">
+                        <i class="bi bi-lightning-charge feature-icon"></i>
+                    </div>
+                    <h4 class="mt-3">高效合作</h4>
+                    <p class="small text-muted">简化合作流程，提供便捷的沟通工具，让广告合作更加高效。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 用户角色 -->
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="profile-inner-card flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="profile-inner-card-header">
+                                <div class="profile-inner-card-icon">
+                                    <i class="bi bi-briefcase"></i>
+                                </div>
+                                <h3 class="profile-inner-card-title">广告主</h3>
+                            </div>
+                            <div class="profile-inner-card-content">
+                                <p>如果您是广告主，我们可以帮助您：</p>
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>快速找到合适的广告投放渠道</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>管理多个广告合作项目</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>追踪广告投放效果数据</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>优化广告投放策略</li>
+                                </ul>
+                                <div class="text-center mt-3">
+                                    <span class="flip-hint"><i class="bi bi-arrow-repeat me-1"></i>点击查看更多</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h4 class="mb-1">广告主专属功能</h4>
+                            <div class="feature-list">
+                                <div class="feature-item">
+                                    <i class="bi bi-search feature-item-icon"></i>
+                                    <div>智能合作者匹配</div>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="bi bi-bar-chart feature-item-icon"></i>
+                                    <div>实时数据分析</div>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="bi bi-wallet2 feature-item-icon"></i>
+                                    <div>灵活预算管理</div>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="bi bi-chat-dots feature-item-icon"></i>
+                                    <div>一键沟通协作</div>
+                                </div>
+                            </div>
+                            <div class="profile-actions mt-4">
+                                <a href="{{ url_for('index.register') }}" class="profile-action-btn">
+                                    <i class="bi bi-person-plus"></i>注册为广告主
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="profile-inner-card flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="profile-inner-card-header">
+                                <div class="profile-inner-card-icon">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                                <h3 class="profile-inner-card-title">合作者</h3>
+                            </div>
+                            <div class="profile-inner-card-content">
+                                <p>如果您是合作者，我们可以帮助您：</p>
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>获取更多优质广告资源</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>提高流量变现效率</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>管理多个广告合作关系</li>
+                                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>提升专业形象与影响力</li>
+                                </ul>
+                                <div class="text-center mt-3">
+                                    <span class="flip-hint"><i class="bi bi-arrow-repeat me-1"></i>点击查看更多</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flip-card-back">
+                            <h4 class="mb-1">合作者专属功能</h4>
+                            <div class="feature-list">
+                                <div class="feature-item">
+                                    <i class="bi bi-megaphone feature-item-icon"></i>
+                                    <div>展示个人资源</div>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="bi bi-cash-stack feature-item-icon"></i>
+                                    <div>多样变现方式</div>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="bi bi-graph-up-arrow feature-item-icon"></i>
+                                    <div>流量价值评估</div>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="bi bi-calendar-check feature-item-icon"></i>
+                                    <div>项目进度管理</div>
+                                </div>
+                            </div>
+                            <div class="profile-actions mt-4">
+                                <a href="{{ url_for('index.register') }}" class="profile-action-btn">
+                                    <i class="bi bi-person-plus"></i>注册为合作者
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 简化页脚 -->
+    <footer class="bg-dark text-white py-3">
+        <div class="container position-relative">
+            <div class="text-center text-muted">
+                <small>&copy; 2023 广告传播合作平台</small>
+            </div>
+            
+            <!-- 管理员登录按钮 -->
+            <a href="{{ url_for('index.admin_login') }}" class="btn btn-sm btn-outline-light position-absolute floating-button" style="bottom: 10px; right: 15px;">
+                <i class="bi bi-shield-lock"></i>
+            </a>
+        </div>
+    </footer>
+</div>
+
+<style>
+/* 动画渐变文本 */
+.animated-gradient {
+    background: linear-gradient(to right, #3a7bd5, #00d2ff, #3a7bd5);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientText 5s linear infinite;
+}
+
+@keyframes gradientText {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* 按钮发光效果 */
+.btn-glow {
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+.btn-glow:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(58, 123, 213, 0.4);
+}
+
+.btn-glow::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+    opacity: 0;
+    transform: scale(1.2);
+    transition: transform 0.5s, opacity 0.5s;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.btn-glow:hover::after {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* 卡片悬浮效果 */
+.hover-float {
+    transition: all 0.3s ease;
+}
+
+.hover-float:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* 卡片发光效果 */
+.shine-effect {
+    position: relative;
+    overflow: hidden;
+}
+
+.shine-effect::before {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: -100%;
+    width: 50%;
+    height: 200%;
+    background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+    transform: rotate(30deg);
+    animation: shine 6s infinite;
+    z-index: 1;
+    pointer-events: none;
+}
+
+@keyframes shine {
+    0% { left: -100%; }
+    20% { left: 100%; }
+    100% { left: 100%; }
+}
+
+/* 动画下划线 */
+.animated-underline {
+    position: relative;
+    display: inline-block;
+}
+
+.animated-underline::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(to right, #3a7bd5, #00d2ff);
+    border-radius: 3px;
+    animation: underlinePulse 2s infinite;
+}
+
+@keyframes underlinePulse {
+    0% { width: 40px; }
+    50% { width: 80px; }
+    100% { width: 40px; }
+}
+
+/* 功能图标 */
+.feature-icon-wrapper {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 15px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+}
+
+.feature-icon-wrapper::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+    opacity: 0.4;
+    border-radius: 50%;
+    z-index: -1;
+    animation: pulse 2s infinite;
+}
+
+.feature-icon {
+    font-size: 2rem;
+    color: white;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.7;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.3;
+    }
+    100% {
+        transform: scale(0.95);
+        opacity: 0.7;
+    }
+}
+
+/* 翻转卡片效果 */
+.flip-card {
+    perspective: 1000px;
+    height: 400px;
+    cursor: pointer;
+}
+
+.flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+}
+
+.flip-card:hover .flip-card-inner {
+    transform: rotateY(180deg);
+}
+
+.flip-card-front, .flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    border-radius: 16px;
+    overflow: hidden;
+    padding: 20px;
+}
+
+.flip-card-front {
+    background: #fff;
+}
+
+.flip-card-back {
+    background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+    color: white;
+    transform: rotateY(180deg);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.flip-hint {
+    font-size: 12px;
+    color: #6c757d;
+    background: rgba(0,0,0,0.05);
+    padding: 3px 10px;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+.feature-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.2);
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.feature-item-icon {
+    font-size: 1.5rem;
+}
+
+/* 动画文本 */
+.animated-text {
+    background: linear-gradient(to right, #3a7bd5, #00d2ff, #3a7bd5);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientText 5s linear infinite;
+}
+
+/* 管理员按钮浮动效果 */
+.floating-button {
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
+}
+</style>
+{% endblock %}

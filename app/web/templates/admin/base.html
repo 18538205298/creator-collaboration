@@ -1,0 +1,37 @@
+{% extends "dashboard_base.html" %}
+
+{% block user_name %}管理员{% endblock %}
+{% block user_role %}系统管理员{% endblock %}
+
+{% block sidebar_menu %}
+<li>
+    <a href="{{ url_for('admin.dashboard') }}" style="text-decoration: none;" class="{% if request.endpoint.startswith('admin.dashboard') %}active{% endif %}">
+        <i class="bi bi-speedometer2"></i> 首页
+    </a>
+</li>
+<li>
+    <a href="{{ url_for('admin.user_management') }}" style="text-decoration: none;" class="{% if request.endpoint.startswith('admin.user_management') %}active{% endif %}">
+        <i class="bi bi-people"></i> 用户管理
+    </a>
+</li>
+<li>
+    <a href="{{ url_for('admin.content_management') }}" style="text-decoration: none;" class="{% if request.endpoint.startswith('admin.content_management') %}active{% endif %}">
+        <i class="bi bi-file-earmark-text"></i> 内容管理
+    </a>
+</li>
+<li>
+    <a href="{{ url_for('admin.financial_management') }}" style="text-decoration: none;" class="{% if request.endpoint.startswith('admin.financial_management') %}active{% endif %}">
+        <i class="bi bi-currency-dollar"></i> 财务管理
+    </a>
+</li>
+<li>
+    <a href="{{ url_for('admin.data_analysis') }}" style="text-decoration: none;" class="{% if request.endpoint.startswith('admin.data_analysis') %}active{% endif %}">
+        <i class="bi bi-graph-up"></i> 数据分析
+    </a>
+</li>
+<li>
+    <a href="{{ url_for('admin.system_settings') }}" style="text-decoration: none;" class="{% if request.endpoint.startswith('admin.system_settings') %}active{% endif %}">
+        <i class="bi bi-gear"></i> 系统设置
+    </a>
+</li>
+{% endblock %}

@@ -1,0 +1,163 @@
+{% extends "advertiser/ad_tasks/base.html" %}
+
+{% block ad_tasks_content %}
+<div class="profile-info-card">
+    <div class="card-header">
+        <i class="bi bi-plus-circle me-2"></i> 发布新广告任务
+    </div>
+    <div class="card-body">
+        <form id="createAdTaskForm" method="post">
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="profile-inner-card">
+                        <div class="profile-inner-card-header">
+                            <div class="profile-inner-card-icon">
+                                <i class="bi bi-info-circle"></i>
+                            </div>
+                            <h5 class="profile-inner-card-title">基本信息</h5>
+                        </div>
+                        <div class="profile-inner-card-content">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">任务标题<span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="title" name="title" required maxlength="100" placeholder="简洁明了的任务标题">
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">任务描述<span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="description" name="description" rows="5" required placeholder="详细描述您的需求、目标和期望..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="budget" class="form-label">预算金额<span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">¥</span>
+                                    <input type="number" class="form-control" id="budget" name="budget" min="100" step="1" required placeholder="最低预算100元">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="deadline" class="form-label">截止日期<span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="deadline" name="deadline" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="profile-inner-card">
+                        <div class="profile-inner-card-header">
+                            <div class="profile-inner-card-icon">
+                                <i class="bi bi-gear"></i>
+                            </div>
+                            <h5 class="profile-inner-card-title">内容要求</h5>
+                        </div>
+                        <div class="profile-inner-card-content">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="target_audience" class="form-label">目标受众</label>
+                                    <input type="text" class="form-control" id="target_audience" name="target_audience" placeholder="例如：18-25岁女性、科技爱好者等">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="platform_requirements" class="form-label">平台要求</label>
+                                    <input type="text" class="form-control" id="platform_requirements" name="platform_requirements" placeholder="例如：抖音、小红书、B站等">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="content_format" class="form-label">内容格式</label>
+                                    <select class="form-select" id="content_format" name="content_format">
+                                        <option value="">-- 请选择 --</option>
+                                        <option value="视频">视频</option>
+                                        <option value="图文">图文</option>
+                                        <option value="音频">音频</option>
+                                        <option value="直播">直播</option>
+                                        <option value="问答">问答</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="content_style" class="form-label">内容风格</label>
+                                    <select class="form-select" id="content_style" name="content_style">
+                                        <option value="">-- 请选择 --</option>
+                                        <option value="时尚">时尚</option>
+                                        <option value="搞笑">搞笑</option>
+                                        <option value="励志">励志</option>
+                                        <option value="文艺">文艺</option>
+                                        <option value="专业">专业</option>
+                                        <option value="日常">日常</option>
+                                        <option value="创意">创意</option>
+                                        <option value="综合">综合</option>
+                                        <option value="其他">其他</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="requirements" class="form-label">详细要求</label>
+                                <textarea class="form-control" id="requirements" name="requirements" rows="4" placeholder="请详细描述您对合作者的具体要求、评判标准等..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="profile-actions">
+           
+                <button type="submit" class="collaborator-search-btn collaborator-search-btn-primary" id="publishBtn">
+                    <i class="bi bi-send me-1"></i> 立即发布
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 设置截止日期最小值为明天
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('deadline').min = tomorrow.toISOString().split('T')[0];
+    
+    // 表单提交事件
+    document.getElementById('createAdTaskForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitForm('published');
+    });
+    
+    // 提交表单函数
+    function submitForm(status) {
+        const form = document.getElementById('createAdTaskForm');
+        const formData = new FormData(form);
+        
+        // 添加状态值
+        formData.append('status', status);
+        
+        // 转换为JSON对象
+        const jsonData = {};
+        formData.forEach((value, key) => {
+            jsonData[key] = value;
+        });
+        
+        // 发送API请求
+        fetch('/advertiser/api/create_ad_task', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(jsonData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // 成功后重定向到广告任务列表页
+                window.location.href = '/advertiser/ad_tasks/pending';
+            } else {
+                // 显示错误消息
+                console.error('创建失败:', data.message);
+                // 页面会自动刷新显示flash消息
+            }
+        })
+        .catch(error => {
+            console.error('提交失败:', error);
+        });
+    }
+});
+</script>
+{% endblock %} 

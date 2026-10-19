@@ -1,0 +1,122 @@
+{% extends "advertiser/profile/base.html" %}
+
+{% block profile_content %}
+<div class="profile-info-card">
+    <div class="card-header">
+        <h5 class="mb-0">基本资料</h5>
+    </div>
+    <div class="card-body">
+        <!-- 第一行：头像和基本信息 -->
+        <div class="profile-info-row">
+            {% if advertiser.avatar_url and advertiser.avatar_url != 'default_advertiser.png' %}
+            <div class="profile-avatar-container">
+                <img src="{{ url_for('static', filename='uploads/avatars/' + advertiser.avatar_url) }}" alt="公司Logo" class="profile-avatar">
+            </div>
+            {% else %}
+            <div class="profile-avatar-container">
+                <img src="{{ url_for('static', filename='img/default_advertiser.png') }}" alt="默认Logo" class="profile-avatar">
+            </div>
+            {% endif %}
+            
+            <div class="profile-info-group">
+                <div class="profile-info-item">
+                    <span class="profile-info-label">公司名称</span>
+                    <span class="profile-info-value">{{ advertiser.company_name }}</span>
+                </div>
+                <div class="profile-info-item">
+                    <span class="profile-info-label">所属行业</span>
+                    <span class="profile-info-value">{{ advertiser.industry or '未设置' }}</span>
+                </div>
+                <div class="profile-info-item">
+                    <span class="profile-info-label">账户名</span>
+                    <span class="profile-info-value">{{ advertiser.username }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 内部小卡片：联系方式 -->
+        <div class="profile-inner-card">
+            <div class="profile-inner-card-header">
+                <div class="profile-inner-card-icon">
+                    <i class="bi bi-person-lines-fill"></i>
+                </div>
+                <h6 class="profile-inner-card-title">联系方式</h6>
+            </div>
+            <div class="profile-inner-card-content">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">联系电话</span>
+                            <span class="profile-info-value">{{ advertiser.phone_number or '未设置' }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">邮箱地址</span>
+                            <span class="profile-info-value">{{ advertiser.email }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 内部小卡片：账户信息 -->
+        <div class="profile-inner-card">
+            <div class="profile-inner-card-header">
+                <div class="profile-inner-card-icon" style="background: linear-gradient(135deg, #84fab0, #8fd3f4);">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <h6 class="profile-inner-card-title">账户信息</h6>
+            </div>
+            <div class="profile-inner-card-content">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">账户创建日期</span>
+                            <span class="profile-info-value">{{ advertiser.created_at or '未知' }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">上次登录日期</span>
+                            <span class="profile-info-value">{{ advertiser.last_login or '未知' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 内部小卡片：合作数据统计 -->
+        <div class="profile-inner-card">
+            <div class="profile-inner-card-header">
+                <div class="profile-inner-card-icon" style="background: linear-gradient(135deg, #fa709a, #fee140);">
+                    <i class="bi bi-bar-chart-line"></i>
+                </div>
+                <h6 class="profile-inner-card-title">合作数据</h6>
+            </div>
+            <div class="profile-inner-card-content">
+                <div class="profile-stats-grid">
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-value">{{ stats.balance }}</div>
+                        <div class="profile-stat-label">账户余额</div>
+                    </div>
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-value">{{ stats.previous_collaboration_count }}</div>
+                        <div class="profile-stat-label">历史合作数</div>
+                    </div>
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-value">{{ stats.average_budget }}</div>
+                        <div class="profile-stat-label">平均预算</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-actions">
+            <a href="{{ url_for('index.logout') }}" class="profile-action-btn">
+                <i class="bi bi-box-arrow-right"></i> 退出系统
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

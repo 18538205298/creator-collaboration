@@ -1,0 +1,174 @@
+{% extends "collaborator/home/base.html" %}
+
+{% block home_content %}
+<div class="container-fluid py-4">
+    <!-- 顶部数据概览卡片 -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="profile-inner-card">
+                <div class="profile-inner-card-header">
+                    <div class="profile-inner-card-icon">
+                        <i class="bi bi-eye"></i>
+                    </div>
+                    <h5 class="profile-inner-card-title">广告机会浏览</h5>
+                </div>
+                <div class="profile-inner-card-content">
+                    <div class="profile-stats-container">
+                        <div class="profile-stats-grid">
+                            <div class="profile-stat-card">
+                                <div class="profile-stat-value">{{ view_history_count|default(0) }}</div>
+                                <div class="profile-stat-label">总浏览次数</div>
+                            </div>
+                            <div class="profile-stat-card">
+                                <div class="profile-stat-value">{{ tasks_viewed_count|default(0) }}</div>
+                                <div class="profile-stat-label">已浏览任务数</div>
+                            </div>
+                            <div class="profile-stat-card">
+                                <div class="profile-stat-value">{{ recent_views_count|default(0) }}</div>
+                                <div class="profile-stat-label">近期浏览</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="profile-inner-card">
+                <div class="profile-inner-card-header">
+                    <div class="profile-inner-card-icon">
+                        <i class="bi bi-star"></i>
+                    </div>
+                    <h5 class="profile-inner-card-title">收藏数据</h5>
+                </div>
+                <div class="profile-inner-card-content">
+                    <div class="profile-stats-container">
+                        <div class="profile-stats-grid">
+                            <div class="profile-stat-card">
+                                <div class="profile-stat-value">{{ favorite_tasks_count|default(0) }}</div>
+                                <div class="profile-stat-label">收藏的任务</div>
+                            </div>
+                            <div class="profile-stat-card">
+                                <div class="profile-stat-value">{{ recent_favorites_count|default(0) }}</div>
+                                <div class="profile-stat-label">近期收藏</div>
+                            </div>
+                            <div class="profile-stat-card">
+                                <div class="profile-stat-value">{{ favorite_ratio|default('0%') }}</div>
+                                <div class="profile-stat-label">收藏率</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="profile-inner-card">
+                <div class="profile-inner-card-header">
+                    <div class="profile-inner-card-icon">
+                        <i class="bi bi-briefcase"></i>
+                    </div>
+                    <h5 class="profile-inner-card-title">合作申请</h5>
+                </div>
+                <div class="profile-inner-card-content">
+                    <div class="profile-stats-container">
+                        <div class="profile-stats-grid">
+                            <div class="profile-stat-card">
+                                <div class="profile-stat-value">{{ sent_requests_count|default(0) }}</div>
+                                <div class="profile-stat-label">已发送申请</div>
+                            </div>
+                            <div class="profile-stat-card">
+                                <div class="profile-stat-value">{{ pending_requests_count|default(0) }}</div>
+                                <div class="profile-stat-label">待处理申请</div>
+                            </div>
+                            <div class="profile-stat-card">
+                                <div class="profile-stat-value">{{ accepted_ratio|default('0%') }}</div>
+                                <div class="profile-stat-label">申请通过率</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 平台数据和消息活跃度 -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="profile-info-card">
+                <div class="card-header">
+                    <i class="bi bi-graph-up me-2"></i> 平台数据统计
+                </div>
+                <div class="card-body">
+                    <div class="profile-stats-container">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="profile-stat-card">
+                                    <div class="profile-stat-value">{{ collaborator.followers_count|default(0)|number_format }}</div>
+                                    <div class="profile-stat-label">粉丝数</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="profile-stat-card">
+                                    <div class="profile-stat-value">{{ collaborator.likes_count|default(0)|number_format }}</div>
+                                    <div class="profile-stat-label">获赞数</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="profile-stat-card">
+                                    <div class="profile-stat-value">{{ collaborator.shares_count|default(0)|number_format }}</div>
+                                    <div class="profile-stat-label">分享数</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="profile-stat-card">
+                                    <div class="profile-stat-value">{{ collaborator.comments_count|default(0)|number_format }}</div>
+                                    <div class="profile-stat-label">评论数</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="profile-info-card">
+                <div class="card-header">
+                    <i class="bi bi-envelope me-2"></i> 消息活跃度
+                </div>
+                <div class="card-body">
+                    <div class="profile-stats-container">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="profile-stat-card">
+                                    <div class="profile-stat-value">{{ sent_messages_count|default(0) }}</div>
+                                    <div class="profile-stat-label">已发送消息</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="profile-stat-card">
+                                    <div class="profile-stat-value">{{ received_messages_count|default(0) }}</div>
+                                    <div class="profile-stat-label">已接收消息</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="profile-stat-card">
+                                    <div class="profile-stat-value">{{ unread_messages_count|default(0) }}</div>
+                                    <div class="profile-stat-label">未读消息</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="profile-stat-card">
+                                    <div class="profile-stat-value">{{ message_response_rate|default('0%') }}</div>
+                                    <div class="profile-stat-label">消息回复率</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+   
+    </div>
+</div>
+{% endblock %} 

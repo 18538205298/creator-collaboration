@@ -1,0 +1,68 @@
+/* 通用分页样式组件 */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+  padding: 1rem 0;
+}
+
+/* 基础分页样式 */
+.pagination {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-radius: 0.25rem;
+}
+
+/* 分页项样式 */
+.pagination .page-item {
+  margin: 0 0.125rem;
+}
+
+/* 分页链接基础样式 */
+.pagination .page-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.75rem;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  line-height: 1.25;
+  color: #495057;
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+}
+
+/* 鼠标悬停效果 */
+.pagination .page-link:hover {
+  color: #0d6efd;
+  background-color: #e9ecef;
+  border-color: #dee2e6;
+  z-index: 2;
+}
+
+/* 活动页样式 */
+.pagination .active .page-link {
+  z-index: 3;
+  color: #fff;
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+}
+
+/* 禁用状态样式 */
+.pagination .disabled .page-link {
+  color: #6c757d;
+  pointer-events: none;
+  background-color: #fff;
+  border-color: #dee2e6;
+  opacity: 0.6;
+}
+
+/* 图标样式调整 */
+.pagination .page-link i {
+  font-size: 0.875rem;
+} 

@@ -1,0 +1,136 @@
+{% extends "advertiser/messages/base.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/collaboration_request_card.css') }}">
+{% endblock %}
+
+{% block messages_content %}
+<div class="request-list-container">
+    <div class="request-list-group">
+        <h2 class="request-list-group-title">
+            <i class="bi bi-people"></i> 我的粉丝列表
+        </h2>
+        
+        <div class="request-list-row">
+            {% if followers_list and followers_list|length > 0 %}
+                {% for collaborator in followers_list %}
+                    <div class="request-card" data-id="{{ collaborator.id }}">
+                        <div class="request-card-header">
+                            {% if collaborator.avatar_url and collaborator.avatar_url != 'default_collaborator.png' %}
+                                <img src="{{ url_for('static', filename='uploads/avatars/' + collaborator.avatar_url) }}" alt="{{ collaborator.username }}" class="request-card-avatar">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='img/default_collaborator.png') }}" alt="{{ collaborator.username }}" class="request-card-avatar">
+                            {% endif %}
+                            
+                            <div class="request-card-header-info">
+                                <div class="request-card-title">{{ collaborator.username }}</div>
+                                <div class="request-card-meta">
+                                    <div class="request-card-platform">
+                                        <i class="bi bi-broadcast"></i> {{ collaborator.platform }}
+                                    </div>
+                                    <span class="collaborator-tag content-style-tag" style="font-size: 10px; padding: 1px 6px;">
+                                        <i class="bi bi-palette"></i> {{ collaborator.content_style }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="request-card-body">
+                            <div class="request-card-task-title">
+                                <i class="bi bi-graph-up"></i> 统计数据
+                            </div>
+                            <div class="request-card-message">
+                                粉丝: {{ collaborator.followers_count|number_format }} | 历史合作: {{ collaborator.previous_collaboration_count }}
+                            </div>
+                        </div>
+                        
+                        <div class="request-card-footer">
+                            <div class="request-card-actions">
+                                <a href="{{ url_for('advertiser.collaborator_detail', id=collaborator.id) }}" class="request-card-action-btn request-card-view-btn" style="text-decoration: none;">
+                                    <i class="bi bi-eye"></i> 查看资料
+                                </a>
+                                <button class="request-card-action-btn {% if collaborator.is_following %}request-card-cancel-btn{% else %}request-card-accept-btn{% endif %} follow-action" data-id="{{ collaborator.id }}">
+                                    <i class="bi {% if collaborator.is_following %}bi-person-check-fill{% else %}bi-person-plus{% endif %}"></i> 
+                                    {% if collaborator.is_following %}已关注{% else %}回关{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="request-list-empty">
+                    <i class="bi bi-people"></i>
+                    <div class="request-list-empty-title">还没有合作者关注您</div>
+                    <p class="request-list-empty-text">随着您发布更多优质广告任务和建立更多合作关系，会有更多的合作者关注您的账号。</p>
+                    <a href="{{ url_for('advertiser.collaborator_search_list') }}" class="request-card-action-btn request-card-accept-btn mt-3">
+                        <i class="bi bi-search"></i> 寻找合作者
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 关注/取消关注功能
+    const followButtons = document.querySelectorAll('.follow-action');
+    followButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const collaboratorId = this.getAttribute('data-id');
+            const isFollowing = this.classList.contains('request-card-cancel-btn');
+            
+            if (isFollowing) {
+                // 取消关注
+                fetch(`/advertiser/api/follow/remove/${collaboratorId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        this.classList.remove('request-card-cancel-btn');
+                        this.classList.add('request-card-accept-btn');
+                        this.innerHTML = '<i class="bi bi-person-plus"></i> 回关';
+                    } else {
+                        alert('取消关注失败，请稍后重试');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('网络错误，请稍后重试');
+                });
+            } else {
+                // 添加关注
+                fetch(`/advertiser/api/follow/add/${collaboratorId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        this.classList.remove('request-card-accept-btn');
+                        this.classList.add('request-card-cancel-btn');
+                        this.innerHTML = '<i class="bi bi-person-check-fill"></i> 已关注';
+                    } else {
+                        alert('关注失败，请稍后重试');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('网络错误，请稍后重试');
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

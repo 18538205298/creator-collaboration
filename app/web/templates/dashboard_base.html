@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+        <div class="user-info">
+            <div class="avatar">
+                {% if session.get('user_type') == 'advertiser' %}
+                    {% if session.get('avatar_url') and session.get('avatar_url') != 'default_advertiser.png' %}
+                    <img src="{{ url_for('static', filename='uploads/avatars/' + session.get('avatar_url')) }}" alt="企业LOGO">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='img/default_advertiser.png') }}" alt="企业LOGO">
+                    {% endif %}
+                {% elif session.get('user_type') == 'collaborator' %}
+                    {% if session.get('avatar_url') and session.get('avatar_url') != 'default_collaborator.png' %}
+                    <img src="{{ url_for('static', filename='uploads/avatars/' + session.get('avatar_url')) }}" alt="头像">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='img/default_collaborator.png') }}" alt="头像">
+                    {% endif %}
+                {% elif session.get('user_type') == 'admin' %}
+                    <img src="{{ url_for('static', filename='img/admin.png') }}" alt="管理员头像">
+                {% else %}
+                    <img src="{{ url_for('static', filename='img/default_user.png') }}" alt="用户头像">
+                {% endif %}
+            </div>
+            <div class="user-details">
+                <h3>{% block user_name %}用户名{% endblock %}</h3>
+                <p>{% block user_role %}用户角色{% endblock %}</p>
+            </div>
+        </div>
+        <div class="sidebar-nav">
+            <ul>
+                {% block sidebar_menu %}
+                <!-- 默认菜单项，会被子模板覆盖 -->
+                <li>
+                    <a href="#" class="active">
+                        <i class="bi bi-speedometer2"></i> 仪表盘
+                    </a>
+                </li>
+                {% endblock %}
+            </ul>
+        </div>
+
+    </div>
+    
+    <!-- 主内容区 -->
+    <div class="main-content">
+        
+        
+        <!-- 页面内容 -->
+        <div class="dashboard-section active">
+            {% block dashboard_content %}{% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}

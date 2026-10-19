@@ -1,0 +1,38 @@
+{% extends "collaborator/base.html" %}
+
+{% block title %}合作者 - 我的合作{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/collaborator/my_collaborations/style.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid mt-4">
+    <h2>我的合作</h2>
+    
+    <!-- 横向导航栏 -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'ongoing' %}active{% endif %}" href="{{ url_for('collaborator.my_collaborations_ongoing') }}">
+                <i class="bi bi-hourglass-split"></i> 进行中项目
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'completed' %}active{% endif %}" href="{{ url_for('collaborator.my_collaborations_completed') }}">
+                <i class="bi bi-check-circle"></i> 已完成项目
+            </a>
+        </li>
+    </ul>
+
+    <!-- 内容区块 -->
+    <div class="collaborations-content">
+        {% block collaborations_content %}
+        <!-- 默认内容 -->
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> 请从上方选择您要查看的内容
+        </div>
+        {% endblock %}
+    </div>
+</div>
+{% endblock %}

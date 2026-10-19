@@ -1,0 +1,156 @@
+{% extends "collaborator/profile/base.html" %}
+
+{% block profile_content %}
+<div class="container">
+    <div class="row">
+        <!-- 余额信息卡片 -->
+        <div class="col-md-6 mb-4">
+            <div class="profile-info-card h-100">
+                <div class="card-header">
+                    <i class="bi bi-wallet2"></i> 账户余额
+                </div>
+                <div class="card-body">
+                    <div class="profile-inner-card">
+                        <div class="profile-inner-card-header">
+                            <div class="profile-inner-card-icon">
+                                <i class="bi bi-cash"></i>
+                            </div>
+                            <h5 class="profile-inner-card-title">可用余额</h5>
+                        </div>
+                        <div class="profile-inner-card-content">
+                            <h2 class="display-4 my-3 text-primary">¥ {{ "%.2f"|format(collaborator.balance|float) }}</h2>
+                            <p class="text-muted">上次收入时间：{{ collaborator.last_income_time|default('暂无收入记录', true) }}</p>
+                        </div>
+                    </div>
+                    <div class="profile-actions">
+                        <button class="profile-action-btn" data-bs-toggle="modal" data-bs-target="#withdrawModal">
+                            <i class="bi bi-arrow-down-circle"></i> 申请提现
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 财务统计卡片 -->
+        <div class="col-md-6 mb-4">
+            <div class="profile-info-card h-100">
+                <div class="card-header">
+                    <i class="bi bi-bar-chart"></i> 财务统计
+                </div>
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <div class="profile-stats-grid">
+                        <div class="profile-stat-card">
+                            <div class="profile-stat-value">{{ total_income|default('0.00', true) }}</div>
+                            <div class="profile-stat-label">总收入 (元)</div>
+                        </div>
+                        <div class="profile-stat-card">
+                            <div class="profile-stat-value">{{ collaborator.previous_collaboration_count|default('0', true) }}</div>
+                            <div class="profile-stat-label">合作次数</div>
+                        </div>
+                        <div class="profile-stat-card">
+                            <div class="profile-stat-value">{{ avg_income|default('0.00', true) }}</div>
+                            <div class="profile-stat-label">平均收入/次 (元)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 余额记录卡片 -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="profile-info-card">
+                <div class="card-header">
+                    <i class="bi bi-clock-history"></i> 余额记录
+                </div>
+                <div class="card-body">
+                    <div class="profile-stats-container">
+                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>时间</th>
+                                        <th>金额</th>
+                                        <th>类型</th>
+                                        <th>状态</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if recharge_records %}
+                                        {% for record in recharge_records %}
+                                        <tr>
+                                            <td>{{ record.created_at }}</td>
+                                            <td>¥ {{ "%.2f"|format(record.amount|float) }}</td>
+                                            <td>{{ record.description }}</td>
+                                            <td><span class="badge bg-success">成功</span></td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="4" class="text-center">暂无余额记录</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 提现模态框 -->
+<div class="modal fade" id="withdrawModal" tabindex="-1" aria-labelledby="withdrawModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="withdrawModalLabel">申请提现</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+            </div>
+            <form action="{{ url_for('collaborator.withdraw') }}" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="withdraw_amount" class="form-label">提现金额</label>
+                        <div class="input-group">
+                            <span class="input-group-text">¥</span>
+                            <input type="number" class="form-control" id="withdraw_amount" name="amount" min="1" max="{{ collaborator.balance }}" step="0.01" required>
+                        </div>
+                        <small class="form-text text-muted">当前可提现金额: ¥{{ "%.2f"|format(collaborator.balance|float) }}</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="withdraw_account" class="form-label">收款账号</label>
+                        <input type="text" class="form-control" id="withdraw_account" name="account" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">提现方式</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="withdraw_method" id="withdraw_alipay" value="alipay" checked>
+                            <label class="form-check-label" for="withdraw_alipay">
+                                <i class="bi bi-credit-card text-primary"></i> 支付宝
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="withdraw_method" id="withdraw_wechat" value="wechat">
+                            <label class="form-check-label" for="withdraw_wechat">
+                                <i class="bi bi-credit-card text-success"></i> 微信支付
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="withdraw_method" id="withdraw_bank" value="bank">
+                            <label class="form-check-label" for="withdraw_bank">
+                                <i class="bi bi-bank text-dark"></i> 银行卡
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary">确认提现</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

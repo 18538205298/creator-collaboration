@@ -1,0 +1,344 @@
+{% extends "collaborator/ad_opportunities/base.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/card.css') }}">
+<style>
+/* 广告主详情页面特有样式 */
+.advertiser-detail-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 0;
+}
+
+.advertiser-detail-nav {
+    margin-bottom: 20px;
+}
+
+.advertiser-detail-back {
+    display: inline-flex;
+    align-items: center;
+    color: #667085;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.advertiser-detail-back i {
+    margin-right: 5px;
+}
+
+.advertiser-detail-back:hover {
+    color: #3a7bd5;
+}
+
+/* 统计数字动画 */
+@keyframes countUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-count {
+    animation: countUp 0.8s forwards;
+}
+
+/* 标签样式 */
+.advertiser-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+    margin-right: 8px;
+    margin-bottom: 8px;
+}
+
+.advertiser-tag i {
+    margin-right: 5px;
+}
+
+.industry-tag {
+    background: rgba(58, 123, 213, 0.1);
+    color: #3a7bd5;
+}
+
+/* 历史合作卡片 */
+.collaboration-history-card {
+    padding: 15px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    border: 1px solid rgba(218, 225, 239, 0.7);
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.collaboration-history-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.05);
+}
+
+.collaboration-history-title {
+    font-weight: 600;
+    font-size: 15px;
+    color: #343a40;
+    margin-bottom: 5px;
+}
+
+.collaboration-history-budget {
+    color: #3a7bd5;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.collaboration-history-date {
+    color: #6c757d;
+    font-size: 12px;
+    margin-left: auto;
+}
+
+.collaboration-history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.collaboration-history-empty {
+    text-align: center;
+    padding: 30px 20px;
+    color: #6c757d;
+    font-style: italic;
+}
+
+@media (max-width: 768px) {
+    .advertiser-detail-container {
+        padding: 15px;
+    }
+    
+    .profile-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-stats-grid {
+        grid-template-columns: repeat(1, 1fr);
+    }
+}
+</style>
+{% endblock %}
+
+{% block opportunities_content %}
+<div class="advertiser-detail-container">
+    <!-- 返回按钮 -->
+    <div class="advertiser-detail-nav">
+        <a href="javascript:history.back();" class="advertiser-detail-back">
+            <i class="bi bi-arrow-left"></i> 返回上一页
+        </a>
+    </div>
+
+    <!-- 广告主基本信息卡片 -->
+    <div class="profile-info-card">
+        <div class="card-header">
+            <h1 class="mb-0">广告主详情</h1>
+        </div>
+        <div class="card-body">
+            <div class="profile-info-row">
+                {% if advertiser.avatar_url and advertiser.avatar_url != 'default_advertiser.png' %}
+                <div class="profile-avatar-container">
+                    <img src="{{ url_for('static', filename='uploads/avatars/' + advertiser.avatar_url) }}" alt="{{ advertiser.username }}" class="profile-avatar">
+                </div>
+                {% else %}
+                <div class="profile-avatar-container">
+                    <img src="{{ url_for('static', filename='img/default_advertiser.png') }}" alt="{{ advertiser.username }}" class="profile-avatar">
+                </div>
+                {% endif %}
+                
+                <div class="profile-info-group">
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">广告主用户名</span>
+                        <span class="profile-info-value">{{ advertiser.username }}</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">公司名称</span>
+                        <span class="profile-info-value">{{ advertiser.company_name }}</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">行业</span>
+                        <span class="profile-info-value">
+                            <span class="advertiser-tag industry-tag">
+                                <i class="bi bi-briefcase"></i> {{ advertiser.industry }}
+                            </span>
+                        </span>
+                    </div>
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">注册时间</span>
+                        <span class="profile-info-value">{% if advertiser.created_at %}{{ advertiser.created_at|date }}{% else %}--{% endif %}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 统计数据 -->
+            <div class="profile-stats-container">
+                <h2 class="profile-stats-title">合作统计</h2>
+                <div class="profile-stats-grid">
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-value animate-count">{{ advertiser.previous_collaboration_count }}</div>
+                        <div class="profile-stat-label">历史合作总数</div>
+                    </div>
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-value animate-count">¥{{ advertiser.average_budget|number_format }}</div>
+                        <div class="profile-stat-label">平均合作预算</div>
+                    </div>
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-value animate-count">{{ cooperation_rate|default('--') }}</div>
+                        <div class="profile-stat-label">合作接受率</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 联系方式 -->
+            <div class="profile-inner-card">
+                <div class="profile-inner-card-header">
+                    <div class="profile-inner-card-icon">
+                        <i class="bi bi-envelope"></i>
+                    </div>
+                    <h2 class="profile-inner-card-title">联系方式</h2>
+                </div>
+                <div class="profile-inner-card-content">
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">邮箱</span>
+                        <span class="profile-info-value">{{ advertiser.email }}</span>
+                    </div>
+                    {% if advertiser.phone_number %}
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">电话</span>
+                        <span class="profile-info-value">{{ advertiser.phone_number }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- 历史合作任务 -->
+            <div class="profile-inner-card" style="margin-top: 20px;">
+                <div class="profile-inner-card-header">
+                    <div class="profile-inner-card-icon">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <h2 class="profile-inner-card-title">近期合作任务</h2>
+                </div>
+                <div class="profile-inner-card-content">
+                    {% if recent_tasks and recent_tasks|length > 0 %}
+                        {% for task in recent_tasks %}
+                        <div class="collaboration-history-card">
+                            <div class="collaboration-history-header">
+                                <div class="collaboration-history-title">{{ task.title }}</div>
+                                <div class="collaboration-history-date">{% if task.created_at %}{{ task.created_at|date }}{% else %}--{% endif %}</div>
+                            </div>
+                            <div class="collaboration-history-budget">预算: ¥{{ task.budget|number_format }}</div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="collaboration-history-empty">
+                            暂无历史合作记录
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- 操作按钮 -->
+            <div class="profile-actions">
+                <a href="{{ url_for('collaborator.ad_opportunities_list', advertiser_id=advertiser.id) }}" class="profile-action-btn" style="background: linear-gradient(135deg, #3a7bd5, #00d2ff);">
+                    <i class="bi bi-list-task"></i> 查看该广告主全部任务
+                </a>
+                <button id="followBtn" class="profile-action-btn follow-btn {% if is_following %}active{% endif %}" data-id="{{ advertiser.id }}">
+                    <i class="bi {% if is_following %}bi-person-check-fill{% else %}bi-person-plus{% endif %}"></i> {% if is_following %}已关注{% else %}关注{% endif %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.follow-btn {
+    background: #f5f7fa;
+    color: #667085;
+    margin-left: 10px;
+}
+.follow-btn.active {
+    background: #3a7bd5;
+    color: white;
+}
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 统计数字动画
+    const animateElements = document.querySelectorAll('.animate-count');
+    animateElements.forEach((el, index) => {
+        setTimeout(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, 200 * index);
+    });
+    
+    // 关注按钮逻辑
+    const followBtn = document.getElementById('followBtn');
+    if (followBtn) {
+        followBtn.addEventListener('click', function() {
+            const advertiserId = this.getAttribute('data-id');
+            const isFollowing = this.classList.contains('active');
+            
+            if (isFollowing) {
+                // 取消关注
+                fetch(`/collaborator/api/follow/remove/${advertiserId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        this.classList.remove('active');
+                        this.innerHTML = '<i class="bi bi-person-plus"></i> 关注';
+                        console.log('取消关注成功');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            } else {
+                // 添加关注
+                fetch(`/collaborator/api/follow/add/${advertiserId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        this.classList.add('active');
+                        this.innerHTML = '<i class="bi bi-person-check-fill"></i> 已关注';
+                        console.log('关注成功');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        });
+    }
+});
+</script>
+{% endblock %} 

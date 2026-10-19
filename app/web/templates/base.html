@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}广告主合作者平台{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- 导入组件CSS -->
+    <link href="{{ url_for('static', filename='css/components/navigation.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/components/dashboard.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/components/card.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/components/button.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/components/list_card.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/components/pagination.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/components/modal.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/components/messages.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/components/badge.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/advertiser/collaboration_requests/style.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/components/collaboration_request_card.css') }}" rel="stylesheet">
+    <style>
+        /* 通知样式 */
+        .alert-system {
+            background-color: #6f42c1;
+            color: white;
+        }
+        .flash-message-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+        .flash-message-container .alert {
+            margin-bottom: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .alert-non-dismissible .btn-close {
+            display: none;
+        }
+    </style>
+    {% block styles %}{% endblock %}
+</head>
+<body>
+    <!-- 消息提示区域 -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-message-container">
+                {% for category, message_data in messages %}
+                    {% set is_object = message_data is mapping %}
+                    {% set message_text = message_data.message if is_object else message_data %}
+                    {% set duration = message_data.duration|default(5000) if is_object else 5000 %}
+                    {% set dismissible = message_data.dismissible|default(true) if is_object else true %}
+                    
+                    {% set alert_class = {
+                        'success': 'success',
+                        'info': 'info',
+                        'warning': 'warning',
+                        'error': 'danger',
+                        'primary': 'primary',
+                        'secondary': 'secondary',
+                        'system': 'system'
+                    }.get(category, 'info') %}
+                    
+                    {% set icon_class = {
+                        'success': 'bi-check-circle-fill',
+                        'info': 'bi-info-circle-fill',
+                        'warning': 'bi-exclamation-triangle-fill',
+                        'error': 'bi-exclamation-circle-fill',
+                        'primary': 'bi-bell-fill',
+                        'secondary': 'bi-bell',
+                        'system': 'bi-gear-fill'
+                    }.get(category, 'bi-bell') %}
+                    
+                    <div class="alert alert-{{ alert_class }} alert-dismissible fade show {% if not dismissible %}alert-non-dismissible{% endif %}" 
+                         role="alert" 
+                         data-duration="{{ duration }}"
+                         data-dismissible="{{ dismissible|lower }}">
+                        <i class="bi {{ icon_class }} me-2"></i>
+                        {{ message_text }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+    {% block content %}{% endblock %}
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 消息自动消失和交互控制
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert');
+            
+            alerts.forEach(function(alert) {
+                const duration = parseInt(alert.dataset.duration || 5000);
+                const dismissible = alert.dataset.dismissible === 'true';
+                
+                // 只有设置了自动关闭时间(大于0)才自动关闭
+                if (duration > 0) {
+                    setTimeout(function() {
+                        const closeBtn = alert.querySelector('.btn-close');
+                        if (closeBtn) {
+                            closeBtn.click();
+                        } else {
+                            // 如果没有关闭按钮但需要自动关闭
+                            alert.classList.remove('show');
+                            setTimeout(() => {
+                                alert.remove();
+                            }, 150);
+                        }
+                    }, duration);
+                }
+                
+                // 如果不允许手动关闭，就阻止关闭按钮的点击事件
+                if (!dismissible) {
+                    const closeBtn = alert.querySelector('.btn-close');
+                    if (closeBtn) {
+                        closeBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            return false;
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

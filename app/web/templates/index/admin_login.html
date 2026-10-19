@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}管理员登录 - 广告传播合作平台{% endblock %}
+
+{% block content %}
+<div class="bg-light min-vh-100 d-flex align-items-center">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6 col-xl-5">
+                <div class="profile-info-card">
+                    <div class="card-header">
+                        <h4 class="mb-0 text-center">管理员登录</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-4">
+                            <div class="profile-avatar-container mx-auto" style="width: 80px; height: 80px; background: linear-gradient(135deg, #3a7bd5, #00d2ff);">
+                                <div class="d-flex align-items-center justify-content-center h-100">
+                                    <i class="bi bi-shield-lock text-white" style="font-size: 2.5rem;"></i>
+                                </div>
+                            </div>
+                            <p class="profile-info-label mt-3">请输入管理员账号信息</p>
+                        </div>
+
+                        <form action="{{ url_for('index.admin_login_submit') }}" method="post">
+                            <div class="profile-inner-card mb-3">
+                                <label for="username" class="form-label">管理员账号</label>
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background: linear-gradient(135deg, #3a7bd5, #00d2ff); color: white;">
+                                        <i class="bi bi-person-badge"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="username" name="username" placeholder="请输入管理员账号" autocomplete="username">
+                                </div>
+                            </div>
+                            <div class="profile-inner-card mb-4">
+                                <label for="password" class="form-label">管理员密码</label>
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background: linear-gradient(135deg, #3a7bd5, #00d2ff); color: white;">
+                                        <i class="bi bi-lock"></i>
+                                    </span>
+                                    <input type="password" class="form-control" id="password" name="password" placeholder="请输入管理员密码" autocomplete="current-password">
+                                </div>
+                            </div>
+
+                            <div class="profile-actions">
+                                <button type="submit" class="profile-action-btn w-100 d-flex justify-content-center align-items-center">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>登录系统
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('index.login') }}" class="text-primary small me-3">
+                        <i class="bi bi-person me-1"></i>用户登录
+                    </a>
+                    <a href="{{ url_for('index.index') }}" class="text-primary small">
+                        <i class="bi bi-arrow-left me-1"></i>返回首页
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,159 @@
+{% extends "collaborator/profile/base.html" %}
+
+{% block profile_content %}
+<div class="profile-info-card">
+    <div class="card-header">
+        <h5 class="mb-0">基本资料</h5>
+    </div>
+    <div class="card-body">
+        <!-- 第一行：头像和基本信息 -->
+        <div class="profile-info-row">
+            {% if collaborator.avatar_url and collaborator.avatar_url != 'default_collaborator.png' %}
+            <div class="profile-avatar-container">
+                {% if collaborator.avatar_url.startswith('/') %}
+                <img src="{{ collaborator.avatar_url }}" alt="头像" class="profile-avatar">
+                {% else %}
+                <img src="{{ url_for('static', filename='uploads/avatars/' + collaborator.avatar_url) }}" alt="头像" class="profile-avatar">
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="profile-avatar-container">
+                <img src="{{ url_for('static', filename='img/default_collaborator.png') }}" alt="默认头像" class="profile-avatar">
+            </div>
+            {% endif %}
+            
+            <div class="profile-info-group">
+                <div class="profile-info-item">
+                    <span class="profile-info-label">用户名</span>
+                    <span class="profile-info-value">{{ collaborator.username }}</span>
+                </div>
+                <div class="profile-info-item">
+                    <span class="profile-info-label">邮箱</span>
+                    <span class="profile-info-value">{{ collaborator.email }}</span>
+                </div>
+                <div class="profile-info-item">
+                    <span class="profile-info-label">主要平台</span>
+                    <span class="profile-info-value">{{ collaborator.platform or '未设置' }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 内部小卡片：用户详细信息 -->
+        <div class="profile-inner-card">
+            <div class="profile-inner-card-header">
+                <div class="profile-inner-card-icon">
+                    <i class="bi bi-person-lines-fill"></i>
+                </div>
+                <h6 class="profile-inner-card-title">详细资料</h6>
+            </div>
+            <div class="profile-inner-card-content">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">联系电话</span>
+                            <span class="profile-info-value">{{ collaborator.phone_number or '未设置' }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">粉丝数量</span>
+                            <span class="profile-info-value">{{ collaborator.followers_count or 0 }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">内容格式</span>
+                            <span class="profile-info-value">{{ collaborator.content_format or '未设置' }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">内容风格</span>
+                            <span class="profile-info-value">{{ collaborator.content_style or '未设置' }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">内容领域</span>
+                            <span class="profile-info-value">{{ collaborator.content_domain or '未设置' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 内部小卡片：账户信息 -->
+        <div class="profile-inner-card">
+            <div class="profile-inner-card-header">
+                <div class="profile-inner-card-icon" style="background: linear-gradient(135deg, #84fab0, #8fd3f4);">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <h6 class="profile-inner-card-title">账户信息</h6>
+            </div>
+            <div class="profile-inner-card-content">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">账户创建日期</span>
+                            <span class="profile-info-value">{{ collaborator.created_at or '未知' }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">上次登录日期</span>
+                            <span class="profile-info-value">{{ collaborator.last_login or '未知' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 内部小卡片：内容交互数据统计 -->
+        <div class="profile-inner-card">
+            <div class="profile-inner-card-header">
+                <div class="profile-inner-card-icon" style="background: linear-gradient(135deg, #fa709a, #fee140);">
+                    <i class="bi bi-bar-chart-line"></i>
+                </div>
+                <h6 class="profile-inner-card-title">内容交互数据</h6>
+            </div>
+            <div class="profile-inner-card-content">
+                <div class="profile-stats-grid">
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-value">{{ stats.likes_count }}</div>
+                        <div class="profile-stat-label">获赞数</div>
+                    </div>
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-value">{{ stats.favorites_count }}</div>
+                        <div class="profile-stat-label">收藏数</div>
+                    </div>
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-value">{{ stats.shares_count }}</div>
+                        <div class="profile-stat-label">分享数</div>
+                    </div>
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-value">{{ stats.comments_count }}</div>
+                        <div class="profile-stat-label">评论数</div>
+                    </div>
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-value">{{ stats.clicks_count }}</div>
+                        <div class="profile-stat-label">点击量</div>
+                    </div>
+                    <div class="profile-stat-card">
+                        <div class="profile-stat-value">{{ stats.previous_collaboration_count }}</div>
+                        <div class="profile-stat-label">历史合作数</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-actions">
+            <a href="{{ url_for('index.logout') }}" class="profile-action-btn">
+                <i class="bi bi-box-arrow-right"></i> 退出系统
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

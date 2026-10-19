@@ -1,0 +1,189 @@
+{% extends "collaborator/messages/base.html" %}
+
+{% block messages_content %}
+<div class="messages-container">
+    <!-- 左侧联系人列表 -->
+    <div class="contacts-list">
+        <!-- 动态加载相互关注的广告主（好友）列表 -->
+        {% if mutual_friends %}
+            {% for friend in mutual_friends %}
+            <div class="contact-item d-flex align-items-center justify-content-between {% if active_contact and active_contact.id == friend.id %}active{% endif %}"
+                 data-id="{{ friend.id }}" 
+                 onclick="window.location.href='{{ url_for('collaborator.messages_inbox') }}?contact_id={{ friend.id }}'">
+                <div class="d-flex align-items-center">
+                    {% if friend.avatar_url and friend.avatar_url != 'default_advertiser.png' %}
+                    <img src="{{ url_for('static', filename='uploads/avatars/' + friend.avatar_url) }}" alt="{{ friend.username }}" class="contact-avatar">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='img/default_advertiser.png') }}" alt="{{ friend.username }}" class="contact-avatar">
+                    {% endif %}
+                    <div class="contact-info">
+                        <div class="contact-name">{{ friend.username }}</div>
+
+                    </div>
+                </div>
+                <div class="d-flex flex-column align-items-end">
+                    <div class="contact-time">
+                        {% if friend.last_message_time %}{{ friend.last_message_time }}{% endif %}
+                    </div>
+                    {% if friend.unread_count > 0 %}
+                    <span class="unread-badge">{{ friend.unread_count }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-contacts">
+                <p class="text-center mt-4">暂无好友，请先关注感兴趣的广告主</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    {% if active_contact %}
+    <!-- 右侧聊天区域 -->
+    <div class="chat-area">
+        <!-- 聊天头部 -->
+        <div class="chat-header">
+            {% if active_contact.avatar_url and active_contact.avatar_url != 'default_advertiser.png' %}
+            <img src="{{ url_for('static', filename='uploads/avatars/' + active_contact.avatar_url) }}" alt="{{ active_contact.username }}" class="contact-avatar">
+            {% else %}
+            <img src="{{ url_for('static', filename='img/default_advertiser.png') }}" alt="{{ active_contact.username }}" class="contact-avatar">
+            {% endif %}
+            <div class="contact-info">
+                <div class="contact-name">{{ active_contact.username }}</div>
+                <div class="contact-status">在线</div>
+            </div>
+        </div>
+        
+        <!-- 聊天消息区域 -->
+        <div class="chat-messages" id="chat-messages">
+            {% if messages %}
+                {% for msg in messages %}
+                    <div class="message {{ 'sent' if msg.is_sent else 'received' }} {{ 'unread' if not msg.is_read else '' }}">
+                        <div class="message-text">{{ msg.content }}</div>
+                        <div class="message-time">{{ msg.time }}{% if msg.is_sent and msg.is_read %} <span class="message-status">已读</span>{% endif %}</div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center p-3 text-muted">还没有聊天记录，发送消息开始对话吧</div>
+            {% endif %}
+        </div>
+        
+        <!-- 输入框 -->
+        <div class="chat-input">
+            <form id="message-form" method="post" action="{{ url_for('collaborator.send_message_post') }}">
+                <input type="hidden" name="receiver_id" value="{{ active_contact.id }}">
+                <div class="d-flex">
+                    <textarea name="content" id="message-input" class="message-input form-control" placeholder="输入消息..."></textarea>
+                    <button type="submit" class="send-button btn btn-primary">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <!-- 初始空状态 -->
+    <div class="empty-state flex-grow-1">
+        <i class="bi bi-chat-dots"></i>
+        <p>选择联系人开始聊天</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// 页面加载完成后执行
+document.addEventListener('DOMContentLoaded', function() {
+    // 滚动到消息区域底部
+    scrollToBottom();
+    
+    // 自动调整输入框高度
+    const messageInput = document.getElementById('message-input');
+    if (messageInput) {
+        messageInput.addEventListener('input', function() {
+            // 重置高度，以便检测实际内容高度
+            this.style.height = '42px';
+            // 设置高度为内容的滚动高度（内容实际高度）
+            const newHeight = Math.min(this.scrollHeight, 80);
+            this.style.height = newHeight + 'px';
+        });
+        
+        // 动画效果：在聚焦和失去焦点时添加类名
+        messageInput.addEventListener('focus', function() {
+            this.parentElement.classList.add('focused');
+        });
+        
+        messageInput.addEventListener('blur', function() {
+            this.parentElement.classList.remove('focused');
+        });
+    }
+    
+    // 如果存在消息表单，绑定事件
+    const messageForm = document.getElementById('message-form');
+    if (messageForm) {
+        messageForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // 阻止表单默认提交行为
+            
+            const messageInput = document.getElementById('message-input');
+            const content = messageInput.value.trim();
+            
+            if (content) {
+                // 创建FormData对象
+                const formData = new FormData(this);
+                
+                // 使用fetch API发送表单数据
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 清空输入框
+                        messageInput.value = '';
+                        // 重置输入框高度
+                        messageInput.style.height = '42px';
+                        
+                        // 添加新消息到聊天区域
+                        const messagesContainer = document.getElementById('chat-messages');
+                        const newMessage = document.createElement('div');
+                        newMessage.className = 'message sent';
+                        newMessage.innerHTML = `
+                            <div class="message-text">${content}</div>
+                            <div class="message-time">${getCurrentTime()} <span class="message-status">已发送</span></div>
+                        `;
+                        messagesContainer.appendChild(newMessage);
+                        
+                        // 滚动到底部
+                        scrollToBottom();
+                    } else {
+                        alert('发送失败: ' + (data.error || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('发送消息出错:', error);
+                });
+            }
+        });
+    }
+});
+
+// 获取当前时间
+function getCurrentTime() {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+}
+
+// 滚动到消息区域底部
+function scrollToBottom() {
+    const messagesContainer = document.getElementById('chat-messages');
+    if (messagesContainer) {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+}
+</script>
+{% endblock %} 

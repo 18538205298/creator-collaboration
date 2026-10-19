@@ -1,0 +1,234 @@
+{% extends "advertiser/collaborator_search/base.html" %}
+
+{% block collaborator_search_content %}
+<div class="collaborator-list-container">
+    <!-- 页面标题和操作按钮 -->
+    <div class="collaborator-list-header">
+        <h1 class="collaborator-list-title">合作者列表</h1>
+
+    </div>
+    
+    <!-- 搜索框 -->
+    <div class="collaborator-search-box">
+        <h2 class="collaborator-search-title">搜索合作者</h2>
+        <form class="collaborator-search-form">
+            <div class="collaborator-search-field">
+                <label for="platform" class="collaborator-search-label">平台</label>
+                <select id="platform" name="platform" class="collaborator-search-select">
+                    <option value="">全部平台</option>
+                    <option value="知乎">知乎</option>
+                    <option value="微博">微博</option>
+                    <option value="抖音">抖音</option>
+                    <option value="小红书">小红书</option>
+                    <option value="B站">B站</option>
+                    <option value="豆瓣">豆瓣</option>
+                </select>
+            </div>
+            <div class="collaborator-search-field">
+                <label for="contentFormat" class="collaborator-search-label">内容形式</label>
+                <select id="contentFormat" name="content_format" class="collaborator-search-select">
+                    <option value="">全部形式</option>
+                    <option value="图文">图文</option>
+                    <option value="短视频">短视频</option>
+                    <option value="直播">直播</option>
+                    <option value="长视频">长视频</option>
+                    <option value="音频">音频</option>
+                    <option value="问答">问答</option>
+                </select>
+            </div>
+            <div class="collaborator-search-field">
+                <label for="contentDomain" class="collaborator-search-label">内容领域</label>
+                <select id="contentDomain" name="content_domain" class="collaborator-search-select">
+                    <option value="">全部领域</option>
+                    <option value="美食">美食</option>
+                    <option value="旅游">旅游</option>
+                    <option value="游戏">游戏</option>
+                    <option value="美妆">美妆</option>
+                    <option value="教育">教育</option>
+                    <option value="科技">科技</option>
+                </select>
+            </div>
+            <div class="collaborator-search-field">
+                <label for="minFollowers" class="collaborator-search-label">最低粉丝数</label>
+                <input type="number" id="minFollowers" name="min_followers" class="collaborator-search-input" placeholder="例如：10000">
+            </div>
+            <div class="collaborator-search-field">
+                <label for="contentStyle" class="collaborator-search-label">内容风格</label>
+                <select id="contentStyle" name="content_style" class="collaborator-search-select">
+                    <option value="">全部风格</option>
+                    <option value="生活">生活</option>
+                    <option value="文艺">文艺</option>
+                    <option value="科技">科技</option>
+                    <option value="时尚">时尚</option>
+                    <option value="幽默">幽默</option>
+                    <option value="励志">励志</option>
+                </select>
+            </div>
+            <div class="collaborator-search-field">
+                <label for="keyword" class="collaborator-search-label">关键词</label>
+                <input type="text" id="keyword" name="keyword" class="collaborator-search-input" placeholder="搜索用户名或内容特征">
+            </div>
+            <div class="collaborator-search-actions">
+                <button type="reset" class="collaborator-search-btn collaborator-search-btn-secondary">重置</button>
+                <button type="submit" class="collaborator-search-btn collaborator-search-btn-primary">搜索</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- 合作者列表 -->
+    <div class="collaborator-list-grid">
+        {% if collaborators %}
+            {% for collaborator in collaborators %}
+            <div class="collaborator-list-card">
+                <div class="collaborator-list-card-header">
+                    {% if collaborator.avatar_url and collaborator.avatar_url != 'default_collaborator.png' %}
+                    <img src="{{ url_for('static', filename='uploads/avatars/' + collaborator.avatar_url) }}" alt="{{ collaborator.username }}" class="collaborator-list-avatar">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='img/default_collaborator.png') }}" alt="{{ collaborator.username }}" class="collaborator-list-avatar">
+                    {% endif %}
+                    <div class="collaborator-list-card-info">
+                        <div class="collaborator-list-name">{{ collaborator.username }}</div>
+                        <div class="collaborator-list-platform-tag">{{ collaborator.platform or '未设置平台' }}</div>
+                        <div class="collaborator-list-followers">粉丝数: <span>{{ (collaborator.followers_count or 0)|number_format }}</span></div>
+                    </div>
+                </div>
+                <div class="collaborator-list-card-body">
+                    <div class="collaborator-list-stats">
+                        <div class="collaborator-list-stat-item">
+                            <span class="collaborator-list-stat-value">{{ (collaborator.likes_count or 0)|number_format }}</span>
+                            <span class="collaborator-list-stat-label">获赞</span>
+                        </div>
+                        <div class="collaborator-list-stat-item">
+                            <span class="collaborator-list-stat-value">{{ (collaborator.comments_count or 0)|number_format }}</span>
+                            <span class="collaborator-list-stat-label">评论</span>
+                        </div>
+                        <div class="collaborator-list-stat-item">
+                            <span class="collaborator-list-stat-value">{{ (collaborator.shares_count or 0)|number_format }}</span>
+                            <span class="collaborator-list-stat-label">分享</span>
+                        </div>
+                    </div>
+                    <div class="collaborator-list-tags">
+                        {% if collaborator.content_domain %}
+                        <span class="collaborator-list-tag collaborator-list-domain-tag">{{ collaborator.content_domain }}</span>
+                        {% endif %}
+                        {% if collaborator.content_style %}
+                        <span class="collaborator-list-tag collaborator-list-style-tag">{{ collaborator.content_style }}</span>
+                        {% endif %}
+                        {% if collaborator.content_format %}
+                        <span class="collaborator-list-tag collaborator-list-format-tag">{{ collaborator.content_format }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="collaborator-list-card-actions">
+                        <a href="{{ url_for('advertiser.collaborator_detail', id=collaborator.id) }}" class="collaborator-list-action collaborator-list-action-view" style="text-decoration: none;">查看详情</a>
+                        <a href="javascript:void(0)" class="collaborator-list-action collaborator-list-action-invite" style="text-decoration: none;" data-id="{{ collaborator.id }}" data-name="{{ collaborator.username }}">邀请合作</a>
+                        <button class="collaborator-list-favorite {{ 'active' if collaborator.id in favorite_collaborator_ids else '' }}" data-id="{{ collaborator.id }}">
+                            <i class="bi {{ 'bi-heart-fill' if collaborator.id in favorite_collaborator_ids else 'bi-heart' }}"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="collaborator-list-empty">
+                <i class="bi bi-search"></i>
+                <h3 class="collaborator-list-empty-title">暂无找到合适的合作者</h3>
+                <p class="collaborator-list-empty-text">调整搜索条件或稍后再试，我们正在不断扩充合作者资源库</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- 分页 -->
+    {% if collaborators and collaborators|length > 0 %}
+    <div id="pagination-anchor" class="collaborator-list-pagination">
+        {{ pagination.links }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/components/pagination.js') }}"></script>
+<script src="{{ url_for('static', filename='js/components/modal.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM加载完成，初始化组件');
+    
+    // 检查模态框是否正确加载
+    if (!window.modalManager || !window.invitationModal) {
+        console.error('错误: 模态框组件未正确加载! 请确认modal.js是否正确加载');
+    } else {
+        console.log('模态框组件已加载成功');
+    }
+    
+    // 使用分页处理组件
+    new PaginationHandler('.collaborator-list-pagination', 'pagination-anchor', 'collaborator_scroll_position');
+    
+    // 处理收藏按钮点击事件
+    const favoriteButtons = document.querySelectorAll('.collaborator-list-favorite');
+    favoriteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const collaboratorId = this.getAttribute('data-id');
+            this.classList.toggle('active');
+            if (this.classList.contains('active')) {
+                this.innerHTML = '<i class="bi bi-heart-fill"></i>';
+                // 发送添加收藏请求
+                fetch(`/advertiser/api/favorite/add/${collaboratorId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log('收藏成功');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            } else {
+                this.innerHTML = '<i class="bi bi-heart"></i>';
+                // 发送取消收藏请求
+                fetch(`/advertiser/api/favorite/remove/${collaboratorId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log('取消收藏成功');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        });
+    });
+    
+    // 处理邀请合作按钮点击事件
+    const inviteButtons = document.querySelectorAll('.collaborator-list-action-invite');
+    inviteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const collaboratorId = this.getAttribute('data-id');
+            const collaboratorName = this.getAttribute('data-name');
+            console.log(`尝试打开邀请模态框: ID=${collaboratorId}, 名称=${collaboratorName}`);
+            
+            if (!window.invitationModal) {
+                console.error('错误: invitationModal未定义!');
+                alert('系统错误：无法打开邀请窗口。请刷新页面后重试。');
+                return;
+            }
+            
+            try {
+                window.invitationModal.open(collaboratorId, collaboratorName);
+                console.log('邀请模态框打开成功');
+            } catch (e) {
+                console.error('打开邀请模态框时发生错误:', e);
+                alert('打开邀请窗口时出错，请刷新页面后重试。');
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

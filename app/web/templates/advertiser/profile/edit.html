@@ -1,0 +1,221 @@
+{% extends "advertiser/profile/base.html" %}
+
+{% block profile_content %}
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="profile-info-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-buildings"></i> 企业信息修改</span>
+                <div>
+                    <span class="text-muted small">上次更新：{{ advertiser.last_login|default('') }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('advertiser.profile_save') }}" method="POST" enctype="multipart/form-data" id="profile-form">
+                    <div class="profile-info-row">
+                        <!-- 左侧头像上传 -->
+                        <div class="profile-avatar-container">
+                            {% if advertiser.avatar_url and advertiser.avatar_url != 'default_advertiser.png' %}
+                            <img src="{{ url_for('static', filename='uploads/avatars/' + advertiser.avatar_url) }}" alt="企业LOGO" class="profile-avatar">
+                            {% else %}
+                            <img src="{{ url_for('static', filename='img/default_advertiser.png') }}" alt="企业LOGO" class="profile-avatar">
+                            {% endif %}
+                        </div>
+                        
+                        <div class="profile-info-group">
+                            <div class="mb-3">
+                                <label for="avatar-upload" class="profile-info-label">企业LOGO</label>
+                                <div class="d-flex align-items-center">
+                                    <div class="upload-btn-wrapper">
+                                        <button class="profile-action-btn" onclick="document.getElementById('avatar-upload').click(); return false;">
+                                            <i class="bi bi-camera"></i> 更换LOGO
+                                        </button>
+                                        <input type="file" id="avatar-upload" name="avatar_upload" accept="image/*" style="display: none;" onchange="previewImage(this, 'avatar-preview')">
+                                    </div>
+                                </div>
+                                <small class="form-text text-muted">支持JPG、PNG格式</small>
+                                <div id="avatar-preview-container" class="mt-2 d-none">
+                                    <p class="text-success"><i class="bi bi-check-circle"></i> 图片已选择，保存后生效</p>
+                                </div>
+                            </div>
+                            <div class="profile-info-item">
+                                <label for="username" class="profile-info-label">用户名</label>
+                                <input type="text" class="form-control" id="username" value="{{ advertiser.username }}" disabled>
+                                <small class="form-text text-muted">用户名不可修改</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-inner-card">
+                        <div class="profile-inner-card-header">
+                            <div class="profile-inner-card-icon">
+                                <i class="bi bi-building"></i>
+                            </div>
+                            <h3 class="profile-inner-card-title">企业基本信息</h3>
+                        </div>
+                        <div class="profile-inner-card-content">
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-3">
+                                    <label for="company_name" class="profile-info-label">企业名称</label>
+                                    <input type="text" class="form-control" id="company_name" name="company_name" value="{{ advertiser.company_name }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="industry" class="profile-info-label">所在行业</label>
+                                    <select class="form-select" id="industry" name="industry">
+                                        <option {% if advertiser.industry == '互联网/电子商务' %}selected{% endif %}>互联网/电子商务</option>
+                                        <option {% if advertiser.industry == '金融/保险' %}selected{% endif %}>金融/保险</option>
+                                        <option {% if advertiser.industry == '教育培训' %}selected{% endif %}>教育培训</option>
+                                        <option {% if advertiser.industry == '医疗/健康' %}selected{% endif %}>医疗/健康</option>
+                                        <option {% if advertiser.industry == '零售/消费品' %}selected{% endif %}>零售/消费品</option>
+                                        <option {% if advertiser.industry == '房地产' %}selected{% endif %}>房地产</option>
+                                        <option {% if advertiser.industry == '服装' %}selected{% endif %}>服装</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="profile-info-label">电子邮箱</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ advertiser.email }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="phone_number" class="profile-info-label">联系电话</label>
+                                    <input type="tel" class="form-control" id="phone_number" name="phone_number" value="{{ advertiser.phone_number }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="balance" class="profile-info-label">账户余额</label>
+                                    <input type="text" class="form-control" id="balance" value="{{ advertiser.balance }}" disabled>
+                                    <small class="form-text text-muted">账户余额不可直接修改</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <a href="{{ url_for('advertiser.profile_basic') }}" class="btn btn-outline-secondary me-2">取消</a>
+                        <button type="submit" class="profile-action-btn">
+                            <i class="bi bi-check2"></i> 保存修改
+                        </button>
+           
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-12">
+        <div class="profile-info-card">
+            <div class="card-header">
+                <i class="bi bi-shield-lock"></i> 安全设置
+            </div>
+            <div class="card-body">
+                <div class="profile-inner-card">
+                    <div class="profile-inner-card-header">
+                        <div class="profile-inner-card-icon">
+                            <i class="bi bi-shield-lock"></i>
+                        </div>
+                        <h3 class="profile-inner-card-title">账号安全选项</h3>
+                    </div>
+                    <div class="profile-inner-card-content">
+                        <form action="{{ url_for('advertiser.change_password') }}" method="POST" id="password-form">
+                            <div class="row mb-3 d-none" id="password-change-area">
+                                <div class="col-md-4 mb-3">
+                                    <label for="old_password" class="profile-info-label">当前密码</label>
+                                    <input type="password" class="form-control" id="old_password" name="old_password" placeholder="输入当前密码">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="new_password" class="profile-info-label">新密码</label>
+                                    <input type="password" class="form-control" id="new_password" name="new_password" placeholder="输入新密码">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="confirm_password" class="profile-info-label">确认新密码</label>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="再次输入新密码">
+                                </div>
+                                <div class="col-12 mb-3 text-end">
+                                    <button type="button" class="btn btn-outline-secondary me-2" id="cancel-password-change">取消</button>
+                                    <button type="submit" class="profile-action-btn">
+                                        <i class="bi bi-check2"></i> 确认修改
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                        
+                        <div class="list-group">
+                            <div class="list-group-item d-flex justify-content-between align-items-center border-0 bg-transparent mb-2">
+                                <div>
+                                    <h6 class="mb-1 fw-bold">修改密码</h6>
+                                    <p class="text-muted small mb-0">定期更新密码可以提高账号安全性</p>
+                                </div>
+                                <button class="profile-action-btn" id="show-password-change">
+                                    <i class="bi bi-key"></i> 修改
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 密码修改区域的显示与隐藏
+    const showPasswordChangeBtn = document.getElementById('show-password-change');
+    const cancelPasswordChangeBtn = document.getElementById('cancel-password-change');
+    const passwordChangeArea = document.getElementById('password-change-area');
+    
+    showPasswordChangeBtn.addEventListener('click', function() {
+        passwordChangeArea.classList.remove('d-none');
+        showPasswordChangeBtn.classList.add('d-none');
+    });
+    
+    cancelPasswordChangeBtn.addEventListener('click', function() {
+        passwordChangeArea.classList.add('d-none');
+        showPasswordChangeBtn.classList.remove('d-none');
+    });
+    
+    // 表单提交前检查
+    document.querySelector('form[action="{{ url_for("advertiser.profile_save") }}"]').addEventListener('submit', function(e) {
+        console.log('表单提交中...');
+        const fileInput = document.getElementById('avatar-upload');
+        if (fileInput.files.length > 0) {
+            console.log('已选择文件: ' + fileInput.files[0].name);
+        }
+    });
+});
+
+// 预览图片
+function previewImage(input, previewId) {
+    console.log('文件选择触发');
+    const previewContainer = document.getElementById('avatar-preview-container');
+    
+    if (input.files && input.files[0]) {
+        console.log('已选择文件: ' + input.files[0].name);
+        // 显示提示信息
+        previewContainer.classList.remove('d-none');
+    } else {
+        previewContainer.classList.add('d-none');
+    }
+}
+
+// 调试文件上传
+function debugFileUpload() {
+    const fileInput = document.getElementById('avatar-upload');
+    const formData = new FormData();
+    const testFile = new File(["hello"], "test.png", {type: "image/png"});
+    
+    console.log('创建测试文件:', testFile.name);
+    console.log('测试文件大小:', testFile.size, '字节');
+    
+    alert('创建测试文件: ' + testFile.name);
+    
+    // 验证文件输入元素
+    alert('文件输入元素ID: ' + fileInput.id);
+    alert('文件输入元素名称: ' + fileInput.name);
+    
+    // 验证表单
+    const form = document.getElementById('profile-form');
+    alert('表单enctype: ' + form.enctype);
+    alert('表单方法: ' + form.method);
+    alert('表单动作: ' + form.action);
+}
+</script>
+{% endblock %} 

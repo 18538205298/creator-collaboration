@@ -1,0 +1,201 @@
+{% extends "collaborator/base.html" %}
+
+{% block title %}合作者 - 合作邀请{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/collaborator/collaboration_requests/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/modal.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/collaboration_request_card.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/card.css') }}">
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/components/modal.js') }}"></script>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid mt-4">
+    <h2>合作邀请</h2>
+    
+    <!-- 横向导航栏 -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'sent' %}active{% endif %}" href="{{ url_for('collaborator.collaboration_requests_sent') }}">
+                <i class="bi bi-arrow-up-right"></i> 已发送
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'received' %}active{% endif %}" href="{{ url_for('collaborator.collaboration_requests_received') }}">
+                <i class="bi bi-arrow-down-left"></i> 已收到
+                {% if pending_invitations_count and pending_invitations_count > 0 %}
+                <span class="badge bg-danger rounded-pill">{{ pending_invitations_count }}</span>
+                {% endif %}
+            </a>
+        </li>
+    </ul>
+
+    <!-- 内容区块 -->
+    <div class="collaboration-requests-content">
+        {% block requests_content %}
+        <!-- 默认内容 -->
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> 请从上方选择您要查看的内容
+        </div>
+        {% endblock %}
+    </div>
+</div>
+
+<!-- 添加JavaScript代码处理查看按钮点击 -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 获取所有"查看"按钮
+    const viewButtons = document.querySelectorAll('.request-card-view-btn');
+    
+    // 为每个查看按钮添加点击事件
+    viewButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const requestId = this.getAttribute('data-request-id');
+            const requestCard = this.closest('.request-card');
+            const isReceivedPage = window.location.pathname.includes('/received');
+            
+            // 创建一个Modal实例
+            const modal = window.modalManager;
+            
+            // 显示加载状态
+            modal.open({
+                title: isReceivedPage ? '合作邀请详情' : '合作申请详情',
+                content: '<div class="modal-loading"><div class="modal-spinner"></div><p style="margin-left: 15px;">加载详情...</p></div>',
+                size: 'md'
+            });
+            
+            // 从请求卡片中获取数据（这是简单的方法，不需要额外的API请求）
+            const advertiserAvatar = requestCard.querySelector('.request-card-avatar').getAttribute('src');
+            const advertiserName = requestCard.querySelector('.request-card-title').textContent;
+            const requestTime = requestCard.querySelector('.request-card-time').textContent.replace('<i class="bi bi-clock"></i>', '').trim();
+            const requestStatus = requestCard.querySelector('.request-card-status').textContent;
+            const taskTitle = requestCard.querySelector('.request-card-task-title').textContent.replace('<i class="bi bi-briefcase"></i>', '').trim();
+            const requestMessage = requestCard.querySelector('.request-card-message').textContent.trim();
+            
+            // 根据页面类型构建不同的内容
+            let responseContent = '';
+            if (requestCard.querySelector('.request-card-response-message')) {
+                const responseMessage = requestCard.querySelector('.request-card-response-message').textContent.trim();
+                responseContent = `
+                    <div class="profile-inner-card">
+                        <div class="profile-inner-card-header">
+                            <div class="profile-inner-card-icon">
+                                <i class="bi bi-chat-left-text"></i>
+                            </div>
+                            <h3 class="profile-inner-card-title">${isReceivedPage ? '我的回复' : '广告主回复'}</h3>
+                        </div>
+                        <div class="profile-inner-card-content">
+                            <div class="request-card-message">${responseMessage}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 构建详情内容
+            const detailContent = `
+                <div class="profile-info-row">
+                    <div class="profile-avatar-container">
+                        <img src="${advertiserAvatar}" alt="${advertiserName}" class="profile-avatar">
+                    </div>
+                    <div class="profile-info-group">
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">广告主</span>
+                            <span class="profile-info-value">${advertiserName}</span>
+                        </div>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">发送时间</span>
+                            <span class="profile-info-value">${requestTime}</span>
+                        </div>
+                        <div class="profile-info-item">
+                            <span class="profile-info-label">状态</span>
+                            <span class="request-card-status ${getStatusClass(requestStatus)}">${requestStatus}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-inner-card">
+                    <div class="profile-inner-card-header">
+                        <div class="profile-inner-card-icon">
+                            <i class="bi bi-briefcase"></i>
+                        </div>
+                        <h3 class="profile-inner-card-title">广告任务</h3>
+                    </div>
+                    <div class="profile-inner-card-content">
+                        <div class="request-card-task-title">${taskTitle}</div>
+                    </div>
+                </div>
+                
+                <div class="profile-inner-card">
+                    <div class="profile-inner-card-header">
+                        <div class="profile-inner-card-icon">
+                            <i class="bi bi-chat-square-text"></i>
+                        </div>
+                        <h3 class="profile-inner-card-title">${isReceivedPage ? '邀请内容' : '申请内容'}</h3>
+                    </div>
+                    <div class="profile-inner-card-content">
+                        <div class="request-card-message">${requestMessage}</div>
+                    </div>
+                </div>
+                
+                ${responseContent}
+            `;
+            
+            // 更新模态框内容
+            modal.updateContent(detailContent);
+            
+            // 添加关闭按钮
+            modal.addFooter([
+                {
+                    text: '关闭',
+                    className: 'modal-btn-secondary',
+                    onClick: (e, modal) => {
+                        modal.close();
+                    }
+                }
+            ]);
+        });
+    });
+    
+    // 辅助函数：根据状态获取对应的CSS类
+    function getStatusClass(status) {
+        switch(status) {
+            case '待处理':
+            case '待回应':
+                return 'request-card-status-pending';
+            case '已接受':
+                return 'request-card-status-accepted';
+            case '已拒绝':
+                return 'request-card-status-rejected';
+            case '已取消':
+                return 'request-card-status-canceled';
+            default:
+                return '';
+        }
+    }
+    
+    // 关闭弹窗相关代码（处理原有HTML中的弹窗关闭按钮）
+    const closeDetailModal = document.getElementById('closeDetailModal');
+    const closeDetailBtn = document.getElementById('closeDetailBtn');
+    const requestDetailModal = document.getElementById('requestDetailModal');
+    
+    if (closeDetailModal && requestDetailModal) {
+        closeDetailModal.addEventListener('click', function() {
+            requestDetailModal.style.display = 'none';
+        });
+    }
+    
+    if (closeDetailBtn && requestDetailModal) {
+        closeDetailBtn.addEventListener('click', function() {
+            requestDetailModal.style.display = 'none';
+        });
+    }
+});
+</script>
+
+{% endblock %}

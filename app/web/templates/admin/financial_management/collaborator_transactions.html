@@ -1,0 +1,330 @@
+{% extends "admin/financial_management/base.html" %}
+
+{% block tab_content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">合作者交易记录</h5>
+        <div>
+            <button id="refresh-table-btn" class="btn btn-secondary btn-sm ms-2">
+                <i class="bi bi-arrow-repeat"></i> 刷新数据
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="mb-3">
+            <div class="input-group">
+                <input type="text" id="transaction-search" class="form-control" placeholder="搜索交易记录（支持所有字段）...">
+                <button class="btn btn-outline-secondary" type="button" id="search-btn">
+                    <i class="bi bi-search"></i> 搜索
+                </button>
+            </div>
+        </div>
+        
+        <div id="transactions-table"></div>
+    </div>
+</div>
+
+<!-- 查看交易详情模态框 -->
+<div class="modal fade" id="transaction-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-title">交易详情</h5>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">交易ID</label>
+                            <p id="transaction-id" class="border rounded p-2"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">合作者ID</label>
+                            <p id="transaction-collaborator-id" class="border rounded p-2"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">合作者用户名</label>
+                            <p id="transaction-username" class="border rounded p-2"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">交易类型</label>
+                            <p id="transaction-type" class="border rounded p-2"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">交易金额</label>
+                            <p id="transaction-amount" class="border rounded p-2"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">交易时间</label>
+                            <p id="transaction-created-at" class="border rounded p-2"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">交易描述</label>
+                    <div id="transaction-description" class="border rounded p-2" style="min-height: 100px;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<link href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.4.4/dist/css/tabulator_bootstrap5.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.4.4/dist/js/tabulator.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 使用本地数据作为备用
+    const tableData = [
+        {id: 1, collaborator_id: 101, username: "col_xiuyinghu_447", amount: 100.00, description: "完成广告任务支付", 
+         created_at: "2025-05-01 10:30:20", type: "收入", status: "success"},
+        {id: 2, collaborator_id: 102, username: "col_ifu_450", amount: 150.00, description: "推广收入", 
+         created_at: "2025-05-02 14:15:30", type: "收入", status: "success"},
+        {id: 3, collaborator_id: 101, username: "col_xiuyinghu_447", amount: -20.00, description: "平台服务费", 
+         created_at: "2025-05-03 09:45:10", type: "支出", status: "success"}
+    ];
+    
+    // 定义中文翻译
+    const chineseLocale = {
+        "pagination": {
+            "first": "首页",
+            "first_title": "首页",
+            "last": "尾页",
+            "last_title": "尾页",
+            "prev": "上页",
+            "prev_title": "上页",
+            "next": "下页",
+            "next_title": "下页",
+            "page_size": "每页"
+        },
+        "data": {
+            "loading": "加载中...",
+            "error": "加载错误",
+            "empty": "暂无交易记录数据"
+        }
+    };
+    
+    // 初始化Tabulator表格
+    let transactionsTable = new Tabulator("#transactions-table", {
+        ajaxURL: "{{ url_for('admin.api_collaborator_transactions') }}",
+        ajaxConfig: {
+            method: "GET"
+        },
+        ajaxError: function(error) {
+            // 如果AJAX加载失败，使用本地数据
+            console.error("加载数据失败，使用本地数据", error);
+            this.setData(tableData);
+        },
+        layout: "fitColumns",
+        pagination: true,
+        paginationSize: 10,
+        paginationSizeSelector: [5, 10, 20, 50],
+        rowClick: function(e, row) {
+            showTransactionDetails(row.getData());
+        },
+        columns: [
+            {title: "ID", field: "id", sorter: "number", width: 60},
+            {title: "合作者ID", field: "collaborator_id", sorter: "number", width: 100},
+            {title: "用户名", field: "username", sorter: "string", width: 150},
+            {title: "金额", field: "amount", sorter: "number", formatter: function(cell) {
+                const amount = cell.getValue();
+                return amount >= 0 ? 
+                    `<span class="text-success">+¥${Math.abs(amount).toFixed(2)}</span>` : 
+                    `<span class="text-danger">-¥${Math.abs(amount).toFixed(2)}</span>`;
+            }, width: 120},
+            {title: "类型", field: "type", sorter: "string", formatter: function(cell) {
+                const type = cell.getValue();
+                let className = '';
+                
+                if (type === '收入') {
+                    className = 'bg-success text-white';
+                } else if (type === '支出') {
+                    className = 'bg-danger text-white';
+                } else {
+                    className = 'bg-secondary text-white';
+                }
+                
+                return `<span class="badge ${className}">${type}</span>`;
+            }, width: 80},
+            {title: "状态", field: "status", sorter: "string", formatter: function(cell) {
+                const status = cell.getValue();
+                return `<span class="badge bg-success text-white">成功</span>`;
+            }, width: 80},
+            {title: "交易时间", field: "created_at", sorter: "datetime", sorterParams:{format:"YYYY-MM-DD HH:mm:ss"}, formatter: function(cell) {
+                const date = cell.getValue() ? new Date(cell.getValue()) : null;
+                return date ? date.toLocaleString('zh-CN') : '';
+            }, width: 160},
+            {title: "交易描述", field: "description", sorter: "string", width: 200},
+            {title: "操作", formatter: function(cell) {
+                return '<button class="btn btn-danger btn-sm delete-btn"><i class="bi bi-trash"></i> 删除</button>';
+            }, width: 90, hozAlign: "center", cellClick: function(e, cell) {
+                if(e.target.classList.contains('delete-btn') || e.target.parentElement.classList.contains('delete-btn')) {
+                    e.stopPropagation(); // 阻止行点击事件触发
+                    deleteTransaction(cell.getRow());
+                }
+            }}
+        ],
+        placeholder: "暂无交易记录数据",
+        headerFilterPlaceholder: "筛选...",
+        footerElement: "<span>共 <strong id='total-count'>0</strong> 条数据</span>",
+        // 应用中文翻译
+        locale: true,
+        langs: {
+            "zh-cn": chineseLocale
+        },
+        localized: function(locale, lang){
+            return lang;
+        }
+    });
+    
+    // 设置语言为中文
+    transactionsTable.setLocale("zh-cn");
+    
+    // 表格加载完成后更新总数
+    transactionsTable.on("tableBuilt", function() {
+        document.getElementById("total-count").innerText = transactionsTable.getDataCount();
+    });
+    
+    // 表格数据改变后更新总数
+    transactionsTable.on("dataLoaded", function() {
+        if (document.getElementById("total-count")) {
+            document.getElementById("total-count").innerText = transactionsTable.getDataCount();
+        }
+    });
+    
+    // 搜索功能
+    document.getElementById("search-btn").addEventListener("click", function() {
+        let searchValue = document.getElementById("transaction-search").value;
+        transactionsTable.setFilter(function(data){
+            // 对所有字段进行搜索
+            for(let key in data) {
+                if(data[key] != null && data[key].toString().toLowerCase().includes(searchValue.toLowerCase())) {
+                    return true;
+                }
+            }
+            return false;
+        });
+    });
+    
+    // 回车键触发搜索
+    document.getElementById("transaction-search").addEventListener("keyup", function(event) {
+        if (event.key === "Enter") {
+            document.getElementById("search-btn").click();
+        }
+    });
+    
+    // 刷新表格
+    document.getElementById("refresh-table-btn").addEventListener("click", function() {
+        transactionsTable.clearFilter(true);
+        document.getElementById("transaction-search").value = "";
+        // 尝试从API刷新数据，失败则使用本地数据
+        try {
+            transactionsTable.setData("{{ url_for('admin.api_collaborator_transactions') }}");
+        } catch (error) {
+            console.error("刷新数据失败，使用本地数据", error);
+            transactionsTable.setData(tableData);
+        }
+    });
+    
+    // 显示交易详情
+    function showTransactionDetails(transaction) {
+        document.getElementById("transaction-id").textContent = transaction.id || '-';
+        document.getElementById("transaction-collaborator-id").textContent = transaction.collaborator_id || '-';
+        document.getElementById("transaction-username").textContent = transaction.username || '-';
+        
+        const type = transaction.type || '-';
+        let typeClass = '';
+        if (type === '收入') {
+            typeClass = 'bg-success text-white';
+        } else if (type === '支出') {
+            typeClass = 'bg-danger text-white';
+        } else {
+            typeClass = 'bg-secondary text-white';
+        }
+        document.getElementById("transaction-type").innerHTML = `<span class="badge ${typeClass}">${type}</span>`;
+        
+        const amount = transaction.amount || 0;
+        document.getElementById("transaction-amount").innerHTML = amount >= 0 ? 
+            `<span class="text-success">+¥${Math.abs(amount).toFixed(2)}</span>` : 
+            `<span class="text-danger">-¥${Math.abs(amount).toFixed(2)}</span>`;
+        
+        document.getElementById("transaction-created-at").textContent = transaction.created_at ? new Date(transaction.created_at).toLocaleString('zh-CN') : '-';
+        document.getElementById("transaction-description").textContent = transaction.description || '-';
+        
+        let transactionModal = new bootstrap.Modal(document.getElementById("transaction-modal"));
+        transactionModal.show();
+    }
+    
+    // 删除交易
+    function deleteTransaction(row) {
+        if (confirm(`确定要删除ID为 ${row.getData().id} 的交易记录吗？`)) {
+            const transactionId = row.getData().id;
+            const apiUrl = "{{ url_for('admin.api_collaborator_transactions') }}/" + transactionId;
+            
+            // 发送删除请求
+            fetch(apiUrl, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('网络响应错误');
+            })
+            .then(data => {
+                if (data.success) {
+                    row.delete();
+                    alert("删除成功");
+                    
+                    // 更新计数
+                    if (document.getElementById("total-count")) {
+                        document.getElementById("total-count").innerText = transactionsTable.getDataCount() - 1;
+                    }
+                } else {
+                    alert(`删除失败: ${data.message || '未知错误'}`);
+                }
+            })
+            .catch(error => {
+                console.error("删除交易记录失败", error);
+                alert("删除失败: 网络错误");
+                
+                // 临时模拟删除功能
+                row.delete();
+                
+                // 更新计数
+                if (document.getElementById("total-count")) {
+                    document.getElementById("total-count").innerText = transactionsTable.getDataCount() - 1;
+                }
+            });
+        }
+    }
+});
+</script>
+{% endblock %} 

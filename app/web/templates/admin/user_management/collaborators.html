@@ -1,0 +1,472 @@
+{% extends "admin/user_management/base.html" %}
+
+{% block tab_content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">合作者用户列表</h5>
+        <div>
+            <button id="refresh-table-btn" class="btn btn-secondary btn-sm ms-2">
+                <i class="bi bi-arrow-repeat"></i> 刷新数据
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="mb-3">
+            <div class="input-group">
+                <input type="text" id="collaborator-search" class="form-control" placeholder="搜索合作者（支持所有字段）...">
+                <button class="btn btn-outline-secondary" type="button" id="search-btn">
+                    <i class="bi bi-search"></i> 搜索
+                </button>
+            </div>
+        </div>
+        
+        <div id="collaborators-table"></div>
+    </div>
+</div>
+
+<!-- 编辑合作者模态框 -->
+<div class="modal fade" id="collaborator-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-title">编辑合作者</h5>
+            </div>
+            <div class="modal-body">
+                <form id="collaborator-form">
+                    <input type="hidden" id="collaborator-id">
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">用户名</label>
+                        <input type="text" class="form-control" id="username" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">邮箱</label>
+                        <input type="email" class="form-control" id="email" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">密码</label>
+                        <input type="password" class="form-control" id="password">
+                        <small class="text-muted">编辑时留空表示不修改密码</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="platform" class="form-label">平台</label>
+                        <input type="text" class="form-control" id="platform">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="phone-number" class="form-label">联系电话</label>
+                        <input type="tel" class="form-control" id="phone-number">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="content-domain" class="form-label">内容领域</label>
+                        <input type="text" class="form-control" id="content-domain">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="content-style" class="form-label">内容风格</label>
+                        <input type="text" class="form-control" id="content-style">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="content-format" class="form-label">内容格式</label>
+                        <input type="text" class="form-control" id="content-format">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="followers-count" class="form-label">粉丝数</label>
+                        <input type="number" class="form-control" id="followers-count" min="0">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="save-collaborator-btn">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 删除确认模态框 -->
+<div class="modal fade" id="delete-confirm-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">确认删除</h5>
+            </div>
+            <div class="modal-body">
+                <p>您确定要删除该合作者账户吗？此操作不可恢复。</p>
+                <p><strong>用户名: </strong><span id="delete-collaborator-name"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-btn">确认删除</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<link href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.4.4/dist/css/tabulator_bootstrap5.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.4.4/dist/js/tabulator.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let deleteCollaboratorId = null;
+    
+    // 使用本地数据作为备用
+    const tableData = [
+        {id: 1, username: "col_xiuyinghu_447", email: "col_minliao@example.net", platform: "知乎", 
+         phone_number: "13191320212", balance: 0.00, followers_count: 959151, content_style: "励志", 
+         content_format: "音频", content_domain: "美食", created_at: "2024-04-14 03:29:24", 
+         previous_collaboration_count: 3},
+        {id: 2, username: "col_ifu_450", email: "col_haojun@example.net", platform: "B站", 
+         phone_number: "15523327167", balance: 0.00, followers_count: 933392, content_style: "文艺", 
+         content_format: "问答", content_domain: "教育", created_at: "2024-12-24 13:27:13", 
+         previous_collaboration_count: 28},
+        {id: 3, username: "col_na23_238", email: "col_kxiao@example.org", platform: "豆瓣", 
+         phone_number: "15662225037", balance: 0.00, followers_count: 714195, content_style: "文艺", 
+         content_format: "图文", content_domain: "教育", created_at: "2023-09-02 19:37:28", 
+         previous_collaboration_count: 30}
+    ];
+    
+    // 定义中文翻译
+    const chineseLocale = {
+        "pagination": {
+            "first": "首页",
+            "first_title": "首页",
+            "last": "尾页",
+            "last_title": "尾页",
+            "prev": "上页",
+            "prev_title": "上页",
+            "next": "下页",
+            "next_title": "下页",
+            "page_size": "每页"
+        },
+        "data": {
+            "loading": "加载中...",
+            "error": "加载错误",
+            "empty": "暂无合作者数据"
+        }
+    };
+    
+    // 初始化Tabulator表格
+    let collaboratorsTable = new Tabulator("#collaborators-table", {
+        ajaxURL: "{{ url_for('admin.api_collaborators') }}",
+        ajaxConfig: {
+            method: "GET"
+        },
+        ajaxError: function(error) {
+            // 如果AJAX加载失败，使用本地数据
+            console.error("加载数据失败，使用本地数据", error);
+            this.setData(tableData);
+        },
+        layout: "fitColumns",
+        pagination: true,
+        paginationSize: 10,
+        paginationSizeSelector: [5, 10, 20, 50],
+        columns: [
+            {title: "ID", field: "id", sorter: "number", width: 60},
+            {title: "用户名", field: "username", sorter: "string"},
+            {title: "邮箱", field: "email", sorter: "string"},
+            {title: "平台", field: "platform", sorter: "string"},
+            {title: "内容领域", field: "content_domain", sorter: "string"},
+            {title: "粉丝数", field: "followers_count", sorter: "number", formatter: "number"},
+            {title: "内容风格", field: "content_style", sorter: "string"},
+            {title: "内容格式", field: "content_format", sorter: "string"},
+            {title: "余额", field: "balance", sorter: "number", formatter: "money", formatterParams: {precision: 2}},
+            {title: "注册时间", field: "created_at", sorter: "datetime", sorterParams:{format:"YYYY-MM-DD HH:mm:ss"}, formatter: function(cell) {
+                const date = cell.getValue() ? new Date(cell.getValue()) : null;
+                return date ? date.toLocaleString('zh-CN') : '';
+            }},
+            {title: "操作", formatter: function(cell) {
+                return `
+                    <button class='btn btn-sm btn-info edit-btn' data-id='${cell.getRow().getData().id}'>
+                        <i class='bi bi-pencil'></i>
+                    </button>
+                    <button class='btn btn-sm btn-danger delete-btn ms-1' data-id='${cell.getRow().getData().id}' data-name='${cell.getRow().getData().username}'>
+                        <i class='bi bi-trash'></i>
+                    </button>
+                `;
+            }, hozAlign: "center", width: 120}
+        ],
+        placeholder: "暂无合作者数据",
+        // 应用中文翻译
+        locale: true,
+        langs: {
+            "zh-cn": chineseLocale
+        },
+        localized: function(locale, lang){
+            return lang;
+        },
+        headerFilterPlaceholder: "筛选...",
+    });
+    
+    // 设置语言为中文
+    collaboratorsTable.setLocale("zh-cn");
+    
+    // 表格加载完成后更新总数
+    collaboratorsTable.on("tableBuilt", function() {
+        document.getElementById("total-count").innerText = collaboratorsTable.getDataCount();
+    });
+    
+    // 表格数据改变后更新总数
+    collaboratorsTable.on("dataLoaded", function() {
+        if (document.getElementById("total-count")) {
+            document.getElementById("total-count").innerText = collaboratorsTable.getDataCount();
+        }
+    });
+    
+    // 搜索功能
+    document.getElementById("search-btn").addEventListener("click", function() {
+        let searchValue = document.getElementById("collaborator-search").value;
+        collaboratorsTable.setFilter(function(data){
+            // 对所有字段进行搜索
+            for(let key in data) {
+                if(data[key] != null && data[key].toString().toLowerCase().includes(searchValue.toLowerCase())) {
+                    return true;
+                }
+            }
+            return false;
+        });
+    });
+    
+    // 回车键触发搜索
+    document.getElementById("collaborator-search").addEventListener("keyup", function(event) {
+        if (event.key === "Enter") {
+            document.getElementById("search-btn").click();
+        }
+    });
+    
+    // 刷新表格
+    document.getElementById("refresh-table-btn").addEventListener("click", function() {
+        collaboratorsTable.clearFilter(true);
+        document.getElementById("collaborator-search").value = "";
+        // 尝试从API刷新数据，失败则使用本地数据
+        try {
+            collaboratorsTable.setData("{{ url_for('admin.api_collaborators') }}");
+        } catch (error) {
+            console.error("刷新数据失败，使用本地数据", error);
+            collaboratorsTable.setData(tableData);
+        }
+    });
+    
+    // 编辑按钮点击事件（使用事件委托）
+    document.querySelector("#collaborators-table").addEventListener("click", function(e) {
+        if (e.target.closest(".edit-btn")) {
+            const collaboratorId = e.target.closest(".edit-btn").getAttribute("data-id");
+            editCollaborator(collaboratorId);
+        } else if (e.target.closest(".delete-btn")) {
+            const collaboratorId = e.target.closest(".delete-btn").getAttribute("data-id");
+            const collaboratorName = e.target.closest(".delete-btn").getAttribute("data-name");
+            showDeleteConfirmation(collaboratorId, collaboratorName);
+        }
+    });
+    
+    // 编辑合作者
+    function editCollaborator(collaboratorId) {
+        // 尝试从API获取数据
+        fetch(`{{ url_for('admin.api_collaborator_detail', collaborator_id=0) }}`.replace('0', collaboratorId))
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const collaborator = data.collaborator;
+                    
+                    document.getElementById("modal-title").textContent = "编辑合作者";
+                    document.getElementById("collaborator-id").value = collaborator.id;
+                    document.getElementById("username").value = collaborator.username;
+                    document.getElementById("email").value = collaborator.email;
+                    document.getElementById("platform").value = collaborator.platform || '';
+                    document.getElementById("phone-number").value = collaborator.phone_number || '';
+                    document.getElementById("content-domain").value = collaborator.content_domain || '';
+                    document.getElementById("content-style").value = collaborator.content_style || '';
+                    document.getElementById("content-format").value = collaborator.content_format || '';
+                    document.getElementById("followers-count").value = collaborator.followers_count || 0;
+                    
+                    // 编辑时密码非必填
+                    document.getElementById("password").required = false;
+                    document.getElementById("password").value = '';
+                    
+                    let collaboratorModal = new bootstrap.Modal(document.getElementById("collaborator-modal"));
+                    collaboratorModal.show();
+                } else {
+                    // 如果API获取失败，从表格数据中获取
+                    fallbackEditCollaborator(collaboratorId);
+                }
+            })
+            .catch(error => {
+                console.error('获取合作者信息出错:', error);
+                // 如果API获取失败，从表格数据中获取
+                fallbackEditCollaborator(collaboratorId);
+            });
+    }
+    
+    // 从表格数据中获取合作者信息（备用方案）
+    function fallbackEditCollaborator(collaboratorId) {
+        const rowData = collaboratorsTable.getData().find(item => item.id == collaboratorId);
+        
+        if (rowData) {
+            document.getElementById("modal-title").textContent = "编辑合作者";
+            document.getElementById("collaborator-id").value = rowData.id;
+            document.getElementById("username").value = rowData.username;
+            document.getElementById("email").value = rowData.email;
+            document.getElementById("platform").value = rowData.platform || '';
+            document.getElementById("phone-number").value = rowData.phone_number || '';
+            document.getElementById("content-domain").value = rowData.content_domain || '';
+            document.getElementById("content-style").value = rowData.content_style || '';
+            document.getElementById("content-format").value = rowData.content_format || '';
+            document.getElementById("followers-count").value = rowData.followers_count || 0;
+            
+            // 编辑时密码非必填
+            document.getElementById("password").required = false;
+            document.getElementById("password").value = '';
+            
+            let collaboratorModal = new bootstrap.Modal(document.getElementById("collaborator-modal"));
+            collaboratorModal.show();
+        } else {
+            alert("获取合作者信息失败");
+        }
+    }
+    
+    // 保存合作者
+    document.getElementById("save-collaborator-btn").addEventListener("click", function() {
+        const form = document.getElementById("collaborator-form");
+        
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        const collaboratorId = document.getElementById("collaborator-id").value;
+        const formData = {
+            username: document.getElementById("username").value,
+            email: document.getElementById("email").value,
+            platform: document.getElementById("platform").value,
+            phone_number: document.getElementById("phone-number").value,
+            content_domain: document.getElementById("content-domain").value,
+            content_style: document.getElementById("content-style").value,
+            content_format: document.getElementById("content-format").value,
+            followers_count: document.getElementById("followers-count").value
+        };
+        
+        // 只有在明确修改密码时才包含密码字段
+        const password = document.getElementById("password").value;
+        if (password) {
+            formData.password = password;
+        }
+        
+        // 配置请求参数
+        const url = `{{ url_for('admin.api_update_collaborator', collaborator_id=0) }}`.replace('0', collaboratorId);
+        const method = 'PUT';
+        
+        // 发送请求
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById("collaborator-modal")).hide();
+                
+                // 尝试从API刷新数据
+                try {
+                    collaboratorsTable.setData("{{ url_for('admin.api_collaborators') }}");
+                } catch (error) {
+                    // 如果API获取失败，使用本地更新
+                    console.error("刷新数据失败，使用本地数据更新", error);
+                    fallbackSaveCollaborator(collaboratorId, formData);
+                }
+                
+                alert(`合作者更新成功!`);
+            } else {
+                alert("操作失败: " + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('保存合作者信息出错:', error);
+            alert("保存合作者信息出错，正在尝试本地保存");
+            // 本地保存备用方案
+            fallbackSaveCollaborator(collaboratorId, formData);
+        });
+    });
+    
+    // 本地保存合作者（备用方案）
+    function fallbackSaveCollaborator(collaboratorId, formData) {
+        // 编辑现有数据
+        const index = tableData.findIndex(item => item.id == collaboratorId);
+        if (index !== -1) {
+            tableData[index] = {...tableData[index], ...formData};
+            collaboratorsTable.updateRow(collaboratorId, formData);
+        }
+        bootstrap.Modal.getInstance(document.getElementById("collaborator-modal")).hide();
+    }
+    
+    // 显示删除确认框
+    function showDeleteConfirmation(collaboratorId, collaboratorName) {
+        deleteCollaboratorId = collaboratorId;
+        document.getElementById("delete-collaborator-name").textContent = collaboratorName;
+        
+        let deleteModal = new bootstrap.Modal(document.getElementById("delete-confirm-modal"));
+        deleteModal.show();
+    }
+    
+    // 确认删除
+    document.getElementById("confirm-delete-btn").addEventListener("click", function() {
+        if (!deleteCollaboratorId) return;
+        
+        fetch(`{{ url_for('admin.api_delete_collaborator', collaborator_id=0) }}`.replace('0', deleteCollaboratorId), {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            bootstrap.Modal.getInstance(document.getElementById("delete-confirm-modal")).hide();
+            
+            if (data.success) {
+                // 尝试从API刷新数据
+                try {
+                    collaboratorsTable.setData("{{ url_for('admin.api_collaborators') }}");
+                } catch (error) {
+                    // 如果API获取失败，使用本地更新
+                    console.error("刷新数据失败，使用本地数据更新", error);
+                    const index = tableData.findIndex(item => item.id == deleteCollaboratorId);
+                    if (index !== -1) {
+                        tableData.splice(index, 1);
+                        collaboratorsTable.deleteRow(deleteCollaboratorId);
+                    }
+                }
+                alert("合作者删除成功!");
+            } else {
+                alert("删除失败: " + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('删除合作者出错:', error);
+            alert("删除合作者出错，正在尝试本地删除");
+            
+            // 本地删除备用方案
+            const index = tableData.findIndex(item => item.id == deleteCollaboratorId);
+            if (index !== -1) {
+                tableData.splice(index, 1);
+                collaboratorsTable.deleteRow(deleteCollaboratorId);
+                alert("合作者删除成功!");
+            }
+            
+            bootstrap.Modal.getInstance(document.getElementById("delete-confirm-modal")).hide();
+        });
+    });
+});
+</script>
+{% endblock %} 

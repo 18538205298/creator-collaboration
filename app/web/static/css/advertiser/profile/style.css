@@ -1,0 +1,17 @@
+.profile-content{min-height:400px}
+
+/* 头像样式 */
+.profile-avatar-container{position:relative;display:inline-block}
+.profile-avatar-container img{border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.1)}
+
+/* 资料编辑表单样式 */
+.profile-avatar-edit{position:relative}
+.profile-avatar-edit img{border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.1)}
+
+/* 财务页面样式 */
+.display-4{font-size:2.5rem !important;font-weight:600 !important}
+
+/* 响应式调整 */
+@media (max-width:768px){
+    .text-end{text-align:center !important;margin-top:1rem}
+} 

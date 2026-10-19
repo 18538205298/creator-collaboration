@@ -1,0 +1,38 @@
+{% extends "admin/base.html" %}
+
+{% block title %}管理员 - 数据分析{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid mt-4">
+    <h2>数据分析</h2>
+    
+    <!-- 横向导航栏 -->
+    <ul class="nav nav-tabs mt-3">
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'users' %}active{% endif %}" href="{{ url_for('admin.data_analysis_users') }}">
+                <i class="bi bi-people"></i> 用户分析
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'transactions' %}active{% endif %}" href="{{ url_for('admin.data_analysis_transactions') }}">
+                <i class="bi bi-cash-stack"></i> 交易分析
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'content' %}active{% endif %}" href="{{ url_for('admin.data_analysis_content') }}">
+                <i class="bi bi-file-earmark-text"></i> 内容分析
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'conversion' %}active{% endif %}" href="{{ url_for('admin.data_analysis_conversion') }}">
+                <i class="bi bi-arrow-down-up"></i> 转化分析
+            </a>
+        </li>
+  
+    </ul>
+    
+    <div class="tab-content mt-3">
+        {% block tab_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %}

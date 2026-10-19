@@ -1,0 +1,43 @@
+{% extends "collaborator/base.html" %}
+
+{% block title %}合作者 - 广告机会{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/collaborator/ad_opportunities/style.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid mt-4">
+    <h2>广告机会</h2>
+    
+    <!-- 横向导航栏 -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'list' %}active{% endif %}" href="{{ url_for('collaborator.ad_opportunities_list') }}">
+                <i class="bi bi-list-ul"></i> 任务列表
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'favorites' %}active{% endif %}" href="{{ url_for('collaborator.ad_opportunities_favorites') }}">
+                <i class="bi bi-star"></i> 收藏任务
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'history' %}active{% endif %}" href="{{ url_for('collaborator.ad_opportunities_history') }}">
+                <i class="bi bi-clock-history"></i> 浏览记录
+            </a>
+        </li>
+    </ul>
+
+    <!-- 内容区块 -->
+    <div class="opportunities-content">
+        {% block opportunities_content %}
+        <!-- 默认内容 -->
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> 请从上方选择您要查看的内容
+        </div>
+        {% endblock %}
+    </div>
+</div>
+{% endblock %}

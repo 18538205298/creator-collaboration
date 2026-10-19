@@ -1,0 +1,43 @@
+{% extends "dashboard_base.html" %}
+
+{% block user_name %}广告主{% endblock %}
+{% block user_role %}企业广告投放者{% endblock %}
+
+{% block sidebar_menu %}
+<li>
+    <a href="{{ url_for('advertiser.home_overview') }}" style="text-decoration: none;" class="{% if request.endpoint.startswith('advertiser.home') %}active{% endif %}">
+        <i class="bi bi-house-door"></i> 首页
+    </a>
+</li>
+<li>
+    <a href="{{ url_for('advertiser.profile') }}" style="text-decoration: none;" class="{% if request.endpoint.startswith('advertiser.profile') %}active{% endif %}">
+        <i class="bi bi-person"></i> 个人资料
+    </a>
+</li>
+<li>
+    <a href="{{ url_for('advertiser.ad_tasks') }}" style="text-decoration: none;" class="{% if request.endpoint.startswith('advertiser.ad_tasks') %}active{% endif %}">
+        <i class="bi bi-briefcase"></i> 广告任务
+    </a>
+</li>
+<li>
+    <a href="{{ url_for('advertiser.collaborator_search') }}" style="text-decoration: none;" class="{% if request.endpoint.startswith('advertiser.collaborator_search') %}active{% endif %}">
+        <i class="bi bi-search"></i> 合作者
+    </a>
+</li>
+<li>
+    <a href="{{ url_for('advertiser.collaboration_requests') }}" style="text-decoration: none;" class="{% if request.endpoint.startswith('advertiser.collaboration_requests') %}active{% endif %}">
+        <i class="bi bi-file-earmark-text"></i> 合作请求
+        {% if pending_requests_count and pending_requests_count > 0 %}
+        <span class="badge bg-danger rounded-pill">{{ pending_requests_count }}</span>
+        {% endif %}
+    </a>
+</li>
+<li>
+    <a href="{{ url_for('advertiser.messages') }}" style="text-decoration: none;" class="{% if request.endpoint.startswith('advertiser.messages') %}active{% endif %}">
+        <i class="bi bi-chat-dots"></i> 消息中心
+        {% if total_unread_count and total_unread_count > 0 %}
+        <span class="badge bg-danger rounded-pill">{{ total_unread_count }}</span>
+        {% endif %}
+    </a>
+</li>
+{% endblock %}

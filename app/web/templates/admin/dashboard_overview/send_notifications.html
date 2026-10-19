@@ -1,0 +1,100 @@
+{% extends "admin/dashboard_overview/base.html" %}
+
+{% block title %}管理员 - 发送系统通知{% endblock %}
+
+{% block tab_content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="profile-info-card">
+            <div class="card-header">
+                <h5 class="mb-0">发送系统通知</h5>
+            </div>
+            <div class="card-body">
+                <form id="notificationForm" method="post" action="{{ url_for('admin.send_notification') }}">
+                    <div class="profile-inner-card">
+                        <div class="profile-inner-card-header">
+                            <div class="profile-inner-card-icon">
+                                <i class="bi bi-people"></i>
+                            </div>
+                            <h6 class="profile-inner-card-title">选择接收对象</h6>
+                        </div>
+                        <div class="profile-inner-card-content">
+                            <div class="mb-3">
+                                <select class="form-select" id="recipient_type" name="recipient_type" required>
+                                    <option value="" selected disabled>请选择通知接收对象</option>
+                                    <option value="all">所有用户</option>
+                                    <option value="all_advertisers">所有广告主</option>
+                                    <option value="all_collaborators">所有合作者</option>
+                                    <option value="specific_advertiser">指定广告主</option>
+                                    <option value="specific_collaborator">指定合作者</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3 specific-user-id" style="display: none;">
+                                <label for="user_id" class="profile-info-label">用户ID</label>
+                                <input type="number" class="form-control" id="user_id" name="user_id" placeholder="请输入用户ID">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-inner-card mt-4">
+                        <div class="profile-inner-card-header">
+                            <div class="profile-inner-card-icon">
+                                <i class="bi bi-envelope"></i>
+                            </div>
+                            <h6 class="profile-inner-card-title">通知内容</h6>
+                        </div>
+                        <div class="profile-inner-card-content">
+                            <div class="mb-3">
+                                <label for="notification_title" class="profile-info-label">通知标题</label>
+                                <input type="text" class="form-control" id="notification_title" name="notification_title" required placeholder="请输入通知标题">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="notification_content" class="profile-info-label">通知内容</label>
+                                <textarea class="form-control" id="notification_content" name="notification_content" rows="5" required placeholder="请输入通知内容"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-actions">
+                        <button type="submit" class="profile-action-btn">
+                            <i class="bi bi-send"></i> 发送通知
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 根据接收对象类型显示/隐藏用户ID输入框
+    const recipientType = document.getElementById('recipient_type');
+    const userIdContainer = document.querySelector('.specific-user-id');
+    const userIdInput = document.getElementById('user_id');
+    
+    recipientType.addEventListener('change', function() {
+        if (this.value === 'specific_advertiser' || this.value === 'specific_collaborator') {
+            userIdContainer.style.display = 'block';
+            userIdInput.required = true;
+        } else {
+            userIdContainer.style.display = 'none';
+            userIdInput.required = false;
+        }
+    });
+    
+    // 表单提交前验证
+    document.getElementById('notificationForm').addEventListener('submit', function(e) {
+        const selectedType = recipientType.value;
+        
+        if ((selectedType === 'specific_advertiser' || selectedType === 'specific_collaborator') && 
+            (!userIdInput.value || isNaN(userIdInput.value) || userIdInput.value <= 0)) {
+            e.preventDefault();
+            alert('请输入有效的用户ID');
+        }
+    });
+});
+</script>
+{% endblock %} 

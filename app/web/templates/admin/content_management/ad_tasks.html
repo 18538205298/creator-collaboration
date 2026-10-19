@@ -1,0 +1,477 @@
+{% extends "admin/content_management/base.html" %}
+
+{% block tab_content %}
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">广告任务列表</h5>
+        <div>
+            <button id="refresh-table-btn" class="btn btn-secondary btn-sm ms-2">
+                <i class="bi bi-arrow-repeat"></i> 刷新数据
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="mb-3">
+            <div class="input-group">
+                <input type="text" id="task-search" class="form-control" placeholder="搜索广告任务（支持所有字段）...">
+                <button class="btn btn-outline-secondary" type="button" id="search-btn">
+                    <i class="bi bi-search"></i> 搜索
+                </button>
+            </div>
+        </div>
+        
+        <div id="tasks-table"></div>
+    </div>
+</div>
+
+<!-- 查看任务详情模态框 -->
+<div class="modal fade" id="task-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-title">广告任务详情</h5>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">标题</label>
+                            <p id="task-title" class="border rounded p-2"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">广告主</label>
+                            <p id="task-advertiser" class="border rounded p-2"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">预算</label>
+                            <p id="task-budget" class="border rounded p-2"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">状态</label>
+                            <p id="task-status" class="border rounded p-2"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">创建时间</label>
+                            <p id="task-created-at" class="border rounded p-2"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">截止日期</label>
+                            <p id="task-deadline" class="border rounded p-2"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">任务描述</label>
+                    <div id="task-description" class="border rounded p-2" style="min-height: 100px;"></div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">需求说明</label>
+                    <div id="task-requirements" class="border rounded p-2" style="min-height: 100px;"></div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">内容格式</label>
+                            <p id="task-content-format" class="border rounded p-2"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">内容风格</label>
+                            <p id="task-content-style" class="border rounded p-2"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">平台要求</label>
+                            <p id="task-platform" class="border rounded p-2"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">目标受众</label>
+                    <p id="task-audience" class="border rounded p-2"></p>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">浏览次数</label>
+                            <p id="task-views" class="border rounded p-2"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">申请数量</label>
+                            <p id="task-applications" class="border rounded p-2"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">合作者ID</label>
+                            <p id="task-collaborator" class="border rounded p-2"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<link href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.4.4/dist/css/tabulator_bootstrap5.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.4.4/dist/js/tabulator.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 使用本地数据作为备用
+    const tableData = [
+        {id: 34, advertiser_id: 101, advertiser_name: "adv_li31_619", company_name: "昂歌信息科技有限公司", 
+         title: "广告任务1", description: "广告任务1描述内容", requirements: "详细说明要求...", budget: 100.00, 
+         status: "cancelled", created_at: "2025-05-02 23:54:54", updated_at: "2025-05-03 13:53:40", 
+         deadline: "2025-05-23", target_audience: "年轻人", platform_requirements: "抖音", 
+         content_format: "视频", content_style: "活泼", views_count: 18, applications_count: 0},
+        {id: 35, advertiser_id: 101, advertiser_name: "adv_li31_619", company_name: "昂歌信息科技有限公司", 
+         title: "广告任务2", description: "广告任务2描述内容", requirements: "详细说明要求...", budget: 100.00, 
+         status: "cancelled", created_at: "2025-05-02 23:55:06", updated_at: "2025-05-02 23:57:00", 
+         deadline: "2025-05-20", target_audience: "中年人", platform_requirements: "微博", 
+         content_format: "图文", content_style: "严肃", views_count: 0, applications_count: 0},
+        {id: 36, advertiser_id: 101, advertiser_name: "adv_li31_619", company_name: "昂歌信息科技有限公司", 
+         title: "广告任务3", description: "广告任务3描述内容", requirements: "详细说明要求...", budget: 100.00, 
+         status: "completed", created_at: "2025-05-02 23:55:17", updated_at: "2025-05-03 13:53:16", 
+         deadline: "2025-05-24", target_audience: "老年人", platform_requirements: "知乎", 
+         content_format: "音频", content_style: "文艺", views_count: 0, applications_count: 1}
+    ];
+    
+    // 定义中文翻译
+    const chineseLocale = {
+        "pagination": {
+            "first": "首页",
+            "first_title": "首页",
+            "last": "尾页",
+            "last_title": "尾页",
+            "prev": "上页",
+            "prev_title": "上页",
+            "next": "下页",
+            "next_title": "下页",
+            "page_size": "每页"
+        },
+        "data": {
+            "loading": "加载中...",
+            "error": "加载错误",
+            "empty": "暂无广告任务数据"
+        }
+    };
+    
+    // 状态文本映射
+    const statusMap = {
+        "draft": "草稿",
+        "published": "已发布",
+        "in_progress": "进行中",
+        "completed": "已完成",
+        "cancelled": "已取消"
+    };
+    
+    // 状态样式映射
+    const statusClassMap = {
+        "draft": "bg-secondary text-white",
+        "published": "bg-primary text-white",
+        "in_progress": "bg-info text-white",
+        "completed": "bg-success text-white",
+        "cancelled": "bg-danger text-white"
+    };
+    
+    // 初始化Tabulator表格
+    let tasksTable = new Tabulator("#tasks-table", {
+        ajaxURL: "{{ url_for('admin.api_ad_tasks') }}",
+        ajaxConfig: {
+            method: "GET"
+        },
+        ajaxError: function(error) {
+            // 如果AJAX加载失败，使用本地数据
+            console.error("加载数据失败，使用本地数据", error);
+            this.setData(tableData);
+        },
+        layout: "fitColumns",
+        pagination: true,
+        paginationSize: 10,
+        paginationSizeSelector: [5, 10, 20, 50],
+        rowClick: function(e, row) {
+            showTaskDetails(row.getData());
+        },
+        columns: [
+            {title: "ID", field: "id", sorter: "number", width: 60},
+            {title: "标题", field: "title", sorter: "string", width: 150},
+            {title: "广告主ID", field: "advertiser_id", sorter: "number", width: 90},
+            {title: "广告主", field: "advertiser_name", sorter: "string", width: 120},
+            {title: "公司", field: "company_name", sorter: "string", width: 150},
+            {title: "预算", field: "budget", sorter: "number", formatter: "money", formatterParams: {precision: 2}, width: 100},
+            {title: "状态", field: "status", sorter: "string", formatter: function(cell) {
+                const status = cell.getValue();
+                const displayText = statusMap[status] || status;
+                const statusClass = statusClassMap[status] || "";
+                return `<span class="badge ${statusClass}">${displayText}</span>`;
+            }, width: 90},
+            {title: "合作者ID", field: "collaborator_id", sorter: "string", width: 100, formatter: function(cell) {
+                const status = cell.getRow().getData().status;
+                if (status === 'in_progress' || status === 'completed') {
+                    const value = cell.getValue();
+                    return value ? value : "查询中...";
+                } else {
+                    return "无";
+                }
+            }},
+            {title: "内容格式", field: "content_format", sorter: "string", width: 100},
+            {title: "内容风格", field: "content_style", sorter: "string", width: 100},
+            {title: "平台", field: "platform_requirements", sorter: "string", width: 100},
+            {title: "目标受众", field: "target_audience", sorter: "string", width: 120},
+            {title: "申请数", field: "applications_count", sorter: "number", width: 80},
+            {title: "浏览数", field: "views_count", sorter: "number", width: 80},
+            {title: "创建时间", field: "created_at", sorter: "datetime", sorterParams:{format:"YYYY-MM-DD HH:mm:ss"}, formatter: function(cell) {
+                const date = cell.getValue() ? new Date(cell.getValue()) : null;
+                return date ? date.toLocaleString('zh-CN') : '';
+            }, width: 160},
+            {title: "截止日期", field: "deadline", sorter: "date", sorterParams:{format:"YYYY-MM-DD"}, formatter: function(cell) {
+                const deadline = cell.getValue();
+                if (!deadline) return '-';
+                
+                // 将日期转换为指定格式：YYYY/MM/DD HH:MM:SS
+                const date = new Date(deadline);
+                const year = date.getFullYear();
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const day = date.getDate().toString().padStart(2, '0');
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                const seconds = date.getSeconds().toString().padStart(2, '0');
+                
+                return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+            }, width: 130},
+            {title: "操作", formatter: function(cell) {
+                return '<button class="btn btn-danger btn-sm delete-btn"><i class="bi bi-trash"></i> 删除</button>';
+            }, width: 90, hozAlign: "center", cellClick: function(e, cell) {
+                if(e.target.classList.contains('delete-btn') || e.target.parentElement.classList.contains('delete-btn')) {
+                    e.stopPropagation(); // 阻止行点击事件触发
+                    deleteTask(cell.getRow());
+                }
+            }}
+        ],
+        placeholder: "暂无广告任务数据",
+        headerFilterPlaceholder: "筛选...",
+        footerElement: "<span>共 <strong id='total-count'>0</strong> 条数据</span>",
+        dataLoaded: function(data) {
+            // 数据加载后，为进行中和已完成的任务查询合作者ID
+            updateCollaboratorIds(data);
+        },
+        // 应用中文翻译
+        locale: true,
+        langs: {
+            "zh-cn": chineseLocale
+        },
+        localized: function(locale, lang){
+            return lang;
+        }
+    });
+    
+    // 设置语言为中文
+    tasksTable.setLocale("zh-cn");
+    
+    // 表格加载完成后更新总数
+    tasksTable.on("tableBuilt", function() {
+        document.getElementById("total-count").innerText = tasksTable.getDataCount();
+    });
+    
+    // 表格数据改变后更新总数
+    tasksTable.on("dataLoaded", function() {
+        if (document.getElementById("total-count")) {
+            document.getElementById("total-count").innerText = tasksTable.getDataCount();
+        }
+    });
+    
+    // 搜索功能
+    document.getElementById("search-btn").addEventListener("click", function() {
+        let searchValue = document.getElementById("task-search").value;
+        tasksTable.setFilter(function(data){
+            // 对所有字段进行搜索
+            for(let key in data) {
+                if(data[key] != null && data[key].toString().toLowerCase().includes(searchValue.toLowerCase())) {
+                    return true;
+                }
+            }
+            return false;
+        });
+    });
+    
+    // 回车键触发搜索
+    document.getElementById("task-search").addEventListener("keyup", function(event) {
+        if (event.key === "Enter") {
+            document.getElementById("search-btn").click();
+        }
+    });
+    
+    // 刷新表格
+    document.getElementById("refresh-table-btn").addEventListener("click", function() {
+        tasksTable.clearFilter(true);
+        document.getElementById("task-search").value = "";
+        // 尝试从API刷新数据，失败则使用本地数据
+        try {
+            tasksTable.setData("{{ url_for('admin.api_ad_tasks') }}");
+        } catch (error) {
+            console.error("刷新数据失败，使用本地数据", error);
+            tasksTable.setData(tableData);
+        }
+    });
+    
+    // 为进行中和已完成的任务更新合作者ID
+    async function updateCollaboratorIds(data) {
+        const tasksNeedUpdate = data.filter(t => 
+            (t.status === 'in_progress' || t.status === 'completed') && !t.collaborator_id);
+            
+        if (tasksNeedUpdate.length === 0) return;
+        
+        for (const task of tasksNeedUpdate) {
+            try {
+                const response = await fetch(`{{ url_for('admin.api_get_task_collaborator') }}?task_id=${task.id}`);
+                const result = await response.json();
+                
+                if (result.success && result.collaborator_id) {
+                    // 更新任务数据
+                    task.collaborator_id = result.collaborator_id;
+                    // 更新表格中的单元格
+                    tasksTable.updateData([{id: task.id, collaborator_id: result.collaborator_id}]);
+                }
+            } catch (error) {
+                console.error(`获取任务${task.id}的合作者ID失败:`, error);
+            }
+        }
+    }
+    
+    // 显示任务详情
+    async function showTaskDetails(task) {
+        document.getElementById("task-title").textContent = task.title || '-';
+        document.getElementById("task-advertiser").textContent = (task.advertiser_name || '-') + ' (' + (task.company_name || '-') + ')';
+        document.getElementById("task-budget").textContent = '¥' + (task.budget ? task.budget.toFixed(2) : '0.00');
+        
+        const status = task.status;
+        const statusText = statusMap[status] || status;
+        const statusClass = statusClassMap[status] || "";
+        document.getElementById("task-status").innerHTML = `<span class="badge ${statusClass}">${statusText}</span>`;
+        
+        document.getElementById("task-created-at").textContent = task.created_at ? new Date(task.created_at).toLocaleString('zh-CN') : '-';
+        document.getElementById("task-deadline").textContent = task.deadline || '-';
+        document.getElementById("task-description").textContent = task.description || '-';
+        document.getElementById("task-requirements").textContent = task.requirements || '-';
+        document.getElementById("task-content-format").textContent = task.content_format || '-';
+        document.getElementById("task-content-style").textContent = task.content_style || '-';
+        document.getElementById("task-platform").textContent = task.platform_requirements || '-';
+        document.getElementById("task-audience").textContent = task.target_audience || '-';
+        document.getElementById("task-views").textContent = task.views_count || '0';
+        document.getElementById("task-applications").textContent = task.applications_count || '0';
+        
+        // 显示合作者ID
+        if (task.status === 'in_progress' || task.status === 'completed') {
+            if (task.collaborator_id) {
+                document.getElementById("task-collaborator").textContent = task.collaborator_id;
+            } else {
+                document.getElementById("task-collaborator").textContent = "查询中...";
+                // 如果表格中没有合作者ID，动态查询
+                try {
+                    const response = await fetch(`{{ url_for('admin.api_get_task_collaborator') }}?task_id=${task.id}`);
+                    const result = await response.json();
+                    
+                    if (result.success && result.collaborator_id) {
+                        document.getElementById("task-collaborator").textContent = result.collaborator_id;
+                        // 更新任务数据和表格
+                        task.collaborator_id = result.collaborator_id;
+                        tasksTable.updateData([{id: task.id, collaborator_id: result.collaborator_id}]);
+                    } else {
+                        document.getElementById("task-collaborator").textContent = "无关联合作者";
+                    }
+                } catch (error) {
+                    console.error("获取合作者ID错误", error);
+                    document.getElementById("task-collaborator").textContent = "查询失败";
+                }
+            }
+        } else {
+            document.getElementById("task-collaborator").textContent = "无";
+        }
+        
+        let taskModal = new bootstrap.Modal(document.getElementById("task-modal"));
+        taskModal.show();
+    }
+    
+    // 删除任务
+    function deleteTask(row) {
+        if (confirm(`确定要删除ID为 ${row.getData().id} 的广告任务吗？`)) {
+            const taskId = row.getData().id;
+            const apiUrl = "{{ url_for('admin.api_ad_tasks') }}/" + taskId;
+            
+            // 发送删除请求
+            fetch(apiUrl, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('网络响应错误');
+            })
+            .then(data => {
+                if (data.success) {
+                    row.delete();
+                    alert("删除成功");
+                    
+                    // 更新计数
+                    if (document.getElementById("total-count")) {
+                        document.getElementById("total-count").innerText = tasksTable.getDataCount() - 1;
+                    }
+                } else {
+                    alert(`删除失败: ${data.message || '未知错误'}`);
+                }
+            })
+            .catch(error => {
+                console.error("删除广告任务失败", error);
+                alert("删除失败: 网络错误");
+                
+                // 临时模拟删除功能
+                row.delete();
+                
+                // 更新计数
+                if (document.getElementById("total-count")) {
+                    document.getElementById("total-count").innerText = tasksTable.getDataCount() - 1;
+                }
+            });
+        }
+    }
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,123 @@
+{% extends "advertiser/ad_tasks/base.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/collaboration_request_card.css') }}">
+{% endblock %}
+
+{% block ad_tasks_content %}
+<div class="request-list-container">
+    <div class="request-list-group">
+        <h2 class="request-list-group-title">
+            <i class="bi bi-play-circle me-2"></i> 进行中项目
+            <span class="text-muted fs-6">({{ ongoing_tasks|length }}个)</span>
+        </h2>
+        
+        {% if ongoing_tasks %}
+        <div class="request-list-row">
+            {% for task in ongoing_tasks %}
+            <div class="request-card">
+                <div class="request-card-header">
+                    {% if task.collaborator_avatar and task.collaborator_avatar != 'default_collaborator.png' %}
+                        <img src="{{ url_for('static', filename='uploads/avatars/' + task.collaborator_avatar) }}" alt="{{ task.collaborator_name }}" class="request-card-avatar">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='img/default_collaborator.png') }}" alt="{{ task.collaborator_name }}" class="request-card-avatar">
+                    {% endif %}
+                    <div class="request-card-header-info">
+                        <div class="request-card-title">{{ task.title }}</div>
+                        <div class="request-card-meta">
+                            <span class="request-card-platform">{{ task.collaborator_name }} | {{ task.collaborator_platform }}</span>
+                            <span class="request-card-time">
+                                <i class="bi bi-clock"></i> {{ task.collaboration_start_time|default('未知', true)|date }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="request-card-body">
+                    <div class="request-card-message">
+                        预算: ¥{{ task.budget }} | 截止日期: {{ task.deadline|date }}
+                    </div>
+                    <div class="request-card-message">
+                        {{ task.description|default('暂无描述', true)|truncate(80) }}
+                    </div>
+                </div>
+                
+                <div class="request-card-footer">
+                    <div class="request-card-actions">
+                        <a href="javascript:void(0);" class="request-card-action-btn request-card-view-btn" style="text-decoration: none;" data-task-id="{{ task.id }}">
+                            <i class="bi bi-eye"></i> 查看详情
+                        </a>
+                        {% if task.collaborator_name and task.collaborator_id %}
+                        <a href="{{ url_for('advertiser.collaborator_detail', id=task.collaborator_id) }}" class="request-card-action-btn request-card-accept-btn" style="text-decoration: none;">
+                            <i class="bi bi-person"></i> 查看合作者
+                        </a>
+                        {% endif %}
+                        <button type="button" class="request-card-action-btn request-card-complete-btn" data-task-id="{{ task.id }}">
+                            <i class="bi bi-check-circle"></i> 标记完成
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="request-list-empty">
+            <i class="bi bi-hourglass"></i>
+            <div class="request-list-empty-title">暂无进行中项目</div>
+            <p class="request-list-empty-text">您当前没有正在进行中的广告任务，可以在"待合作任务"中查看您的待合作任务。</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 引入任务详情模态框JS -->
+<script src="{{ url_for('static', filename='js/components/task_detail_modal.js') }}"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 为"标记完成"按钮添加点击事件
+    document.querySelectorAll('.request-card-complete-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            if (confirm('确定要将此任务标记为已完成吗？')) {
+                const taskId = this.dataset.taskId;
+                
+                // 发送请求标记任务为已完成
+                fetch(`/advertiser/api/complete_task/${taskId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    // 先获取JSON响应
+                    return response.json().then(data => {
+                        // 将响应状态码和数据一起返回
+                        return { status: response.status, data };
+                    });
+                })
+                .then(result => {
+                    if (result.data.status === 'success') {
+                        // 刷新页面（flash消息会自动显示）
+                        window.location.reload();
+                    } else {
+                        // 如果是余额不足，引导用户去充值页面
+                        if (result.status === 400 && result.data.message.includes('余额不足')) {
+                            if (confirm('余额不足，是否立即前往充值页面？')) {
+                                window.location.href = '{{ url_for("advertiser.profile_finance") }}';
+                            }
+                        }
+                        // 错误信息已通过flash显示，不需要额外处理
+                        console.error('操作失败:', result.data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('请求失败:', error);
+                    alert('操作失败，请稍后重试');
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

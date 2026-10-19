@@ -1,0 +1,13 @@
+.collaboration-requests-content{min-height:400px}
+.list-group-item{transition:all .2s ease}
+.list-group-item:hover{background-color:#f9f9f9}
+
+/* 状态标签样式 */
+.badge.bg-warning{background-color:#f7c46c !important}
+.badge.bg-success{background-color:#42ba96 !important}
+.badge.bg-danger{background-color:#df4759 !important}
+.badge.bg-secondary{background-color:#6c757d !important}
+.badge.bg-primary{background-color:#3f78e0 !important}
+
+/* 按钮组样式 */
+.btn-group .dropdown-toggle::after{margin-left:0} 

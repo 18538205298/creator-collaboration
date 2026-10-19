@@ -1,0 +1,107 @@
+{% extends "advertiser/ad_tasks/base.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/collaboration_request_card.css') }}">
+{% endblock %}
+
+{% block ad_tasks_content %}
+<div class="request-list-container">
+    <div class="request-list-group">
+        <h2 class="request-list-group-title">
+            <i class="bi bi-hourglass-split me-2"></i> 待合作任务 
+            <span class="text-muted fs-6">({{ pending_tasks|length }}个)</span>
+        </h2>
+        
+        {% if pending_tasks %}
+        <div class="request-list-row">
+            {% for task in pending_tasks %}
+            <div class="request-card">
+                <div class="request-card-header">
+                    <div class="request-card-header-icon">
+                        <i class="bi bi-megaphone"></i>
+                    </div>
+                    <div class="request-card-header-info">
+                        <div class="request-card-title">{{ task.title }}</div>
+                        <div class="request-card-meta">
+                            <span class="request-card-platform">已发布</span>
+                            <span class="request-card-time">
+                                <i class="bi bi-clock"></i> {{ task.created_at|default('未知', true)|date }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="request-card-body">
+                    <div class="request-card-message">
+                        预算: ¥{{ task.budget }} | 截止日期: {{ task.deadline|date }}
+                    </div>
+                    <div class="request-card-message">
+                        {{ task.description|truncate(80) }}
+                    </div>
+                </div>
+                
+                <div class="request-card-footer">
+                    <div class="request-card-actions">
+                        <a href="javascript:void(0);" class="request-card-action-btn request-card-view-btn" style="text-decoration: none;" data-task-id="{{ task.id }}">
+                            <i class="bi bi-eye"></i> 查看详情
+                        </a>
+                        {% if task.collaborator_name and task.collaborator_id %}
+                        <a href="{{ url_for('advertiser.collaborator_detail', id=task.collaborator_id) }}" class="request-card-action-btn" style="text-decoration: none;">
+                            <i class="bi bi-person"></i> 查看合作者
+                        </a>
+                        {% endif %}
+                        <button type="button" class="request-card-action-btn request-card-reject-btn" data-task-id="{{ task.id }}">
+                            <i class="bi bi-x-circle"></i> 取消任务
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="request-list-empty">
+            <i class="bi bi-hourglass"></i>
+            <div class="request-list-empty-title">暂无待合作任务</div>
+            <p class="request-list-empty-text">您当前没有已发布的广告任务，可以创建新任务并发布以吸引合作者参与您的广告活动。</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 引入任务详情模态框JS -->
+<script src="{{ url_for('static', filename='js/components/task_detail_modal.js') }}"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 为"撤销发布"按钮添加点击事件
+    document.querySelectorAll('.request-card-reject-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            if (confirm('确定要取消此任务吗？任务将变为已取消状态，无法恢复。')) {
+                const taskId = this.dataset.taskId;
+                
+                // 发送请求取消任务
+                fetch(`/advertiser/api/cancel_task/${taskId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // 刷新页面
+                        window.location.reload();
+                    } else {
+                        console.error('操作失败:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('请求失败:', error);
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

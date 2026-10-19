@@ -1,0 +1,43 @@
+{% extends "collaborator/base.html" %}
+
+{% block title %}合作者 - 首页{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/collaborator/home/style.css') }}">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid mt-4">
+    <h2>合作者首页</h2>
+    
+    <!-- 横向导航栏 -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'overview' %}active{% endif %}" href="{{ url_for('collaborator.home_overview') }}">
+                <i class="bi bi-bar-chart"></i> 数据概览
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'recommended' %}active{% endif %}" href="{{ url_for('collaborator.home_recommended') }}">
+                <i class="bi bi-lightbulb"></i> 推荐任务
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'notifications' %}active{% endif %}" href="{{ url_for('collaborator.home_notifications') }}">
+                <i class="bi bi-bell"></i> 平台通知
+            </a>
+        </li>
+    </ul>
+
+    <!-- 内容区块 -->
+    <div class="home-content">
+        {% block home_content %}
+        <!-- 默认内容 -->
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> 请从上方选择您要查看的内容
+        </div>
+        {% endblock %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,183 @@
+{% extends "advertiser/home/base.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/components/collaboration_request_card.css') }}">
+{% endblock %}
+
+{% block home_content %}
+<div class="container">
+ 
+
+    <div class="request-list-container">
+        <!-- 为您推荐 - 基于算法的个性化推荐 -->
+        {% if recommended_collaborators %}
+        <div class="request-list-group">
+            <h3 class="request-list-group-title">为您推荐</h3>
+            <div class="request-list-row">
+                {% for collaborator in recommended_collaborators %}
+                <div class="request-card">
+                    <div class="request-card-header">
+                        {% if collaborator.avatar_url and collaborator.avatar_url != 'default_collaborator.png' %}
+                            <img src="{{ url_for('static', filename='uploads/avatars/' + collaborator.avatar_url) }}" alt="{{ collaborator.username }}" class="request-card-avatar">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='img/default_collaborator.png') }}" alt="{{ collaborator.username }}" class="request-card-avatar">
+                        {% endif %}
+                        <div class="request-card-header-info">
+                            <div class="request-card-title">{{ collaborator.username }}</div>
+                            <div class="request-card-meta">
+                                <div class="request-card-time">
+                                    <i class="bi bi-star-fill" style="color: #FFD700;"></i> 
+                                    <span>{{ ((collaborator.likes_count or 0) / 1000)|round(1) }}K粉丝</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="request-card-body">
+                        <div class="request-card-task-title">
+                            <i class="bi bi-broadcast"></i> {{ collaborator.content_domain or "通用领域" }}
+                        </div>
+                        <div class="request-card-message">
+                            {{ collaborator.content_style or "多样化风格" }}创作者，{{ collaborator.platform or "多平台" }}活跃，已完成{{ collaborator.previous_collaboration_count or 0 }}次合作
+                        </div>
+                    </div>
+                    <div class="request-card-footer">
+                        <div class="request-card-actions">
+                            <a href="{{ url_for('collaborator.profile', collaborator_id=collaborator.id) }}" class="request-card-action-btn request-card-view-btn">
+                                <i class="bi bi-eye"></i> 查看详情
+                            </a>
+                            <button class="request-card-action-btn request-card-accept-btn send-invite-btn" data-collaborator-id="{{ collaborator.id }}" data-collaborator-name="{{ collaborator.username }}">
+                                <i class="bi bi-send"></i> 发送邀请
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+
+        <!-- 无推荐数据时显示的提示 -->
+        {% if not recommended_collaborators and not trending_collaborators and not new_collaborators %}
+        <div class="request-list-empty">
+            <i class="bi bi-search"></i>
+            <div class="request-list-empty-title">暂无合适的推荐合作者</div>
+            <p class="request-list-empty-text">请尝试创建更多广告任务或修改您的偏好设置，我们将为您提供更精准的推荐</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 发送邀请模态框 -->
+<div class="modal fade" id="inviteModal" tabindex="-1" aria-labelledby="inviteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="inviteModalLabel">发送合作邀请</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="inviteForm">
+                    <input type="hidden" id="collaborator_id" name="collaborator_id">
+                    
+                    <div class="mb-3">
+                        <label for="ad_task_id" class="form-label">选择广告任务</label>
+                        <select class="form-select" id="ad_task_id" name="ad_task_id" required>
+                            <option value="" selected disabled>请选择要合作的广告任务</option>
+                            <!-- 此处应动态加载广告主的有效任务 -->
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="invitation_content" class="form-label">邀请说明</label>
+                        <textarea class="form-control" id="invitation_content" name="invitation_content" rows="4" required placeholder="请简要说明合作意向和要求..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="sendInviteBtn">发送邀请</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 发送邀请按钮点击事件
+    const inviteBtns = document.querySelectorAll('.send-invite-btn');
+    const inviteModal = new bootstrap.Modal(document.getElementById('inviteModal'));
+    
+    inviteBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const collaboratorId = this.getAttribute('data-collaborator-id');
+            const collaboratorName = this.getAttribute('data-collaborator-name');
+            
+            document.getElementById('collaborator_id').value = collaboratorId;
+            document.getElementById('inviteModalLabel').textContent = `邀请 ${collaboratorName} 合作`;
+            
+            // 这里应该请求获取广告主的任务列表
+            // 简单模拟加载任务
+            loadAdvertiserTasks();
+            
+            inviteModal.show();
+        });
+    });
+    
+    // 加载广告主任务列表
+    function loadAdvertiserTasks() {
+        const taskSelect = document.getElementById('ad_task_id');
+        
+        // 清空当前选项
+        while (taskSelect.options.length > 1) {
+            taskSelect.remove(1);
+        }
+        
+        // 这里应该是AJAX请求获取任务列表
+        // 简单模拟几个任务
+        const demoTasks = [
+            {id: 1, title: "品牌推广活动"},
+            {id: 2, title: "新品发布宣传"},
+            {id: 3, title: "节日促销活动"}
+        ];
+        
+        demoTasks.forEach(task => {
+            const option = document.createElement('option');
+            option.value = task.id;
+            option.textContent = task.title;
+            taskSelect.appendChild(option);
+        });
+    }
+    
+    // 发送邀请
+    document.getElementById('sendInviteBtn').addEventListener('click', function() {
+        const form = document.getElementById('inviteForm');
+        
+        // 简单验证
+        const taskId = document.getElementById('ad_task_id').value;
+        const content = document.getElementById('invitation_content').value;
+        
+        if (!taskId || !content) {
+            alert('请填写完整信息');
+            return;
+        }
+        
+        // 这里应该是AJAX请求发送邀请
+        // 简单模拟发送成功
+        alert('邀请已发送成功！');
+        inviteModal.hide();
+        
+        // 更新按钮状态
+        const collaboratorId = document.getElementById('collaborator_id').value;
+        const btn = document.querySelector(`.send-invite-btn[data-collaborator-id="${collaboratorId}"]`);
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-check-circle"></i> 已邀请';
+            btn.classList.remove('request-card-accept-btn');
+            btn.classList.add('request-card-view-btn');
+        }
+    });
+});
+</script>
+{% endblock %} 

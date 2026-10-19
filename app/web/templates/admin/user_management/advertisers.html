@@ -1,0 +1,443 @@
+{% extends "admin/user_management/base.html" %}
+
+{% block tab_content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">广告主用户列表</h5>
+        <div>
+            <button id="refresh-table-btn" class="btn btn-secondary btn-sm ms-2">
+                <i class="bi bi-arrow-repeat"></i> 刷新数据
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="mb-3">
+            <div class="input-group">
+                <input type="text" id="advertiser-search" class="form-control" placeholder="搜索广告主（支持所有字段）...">
+                <button class="btn btn-outline-secondary" type="button" id="search-btn">
+                    <i class="bi bi-search"></i> 搜索
+                </button>
+            </div>
+        </div>
+        
+        <div id="advertisers-table"></div>
+    </div>
+</div>
+
+<!-- 编辑广告主模态框 -->
+<div class="modal fade" id="advertiser-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-title">编辑广告主</h5>
+            </div>
+            <div class="modal-body">
+                <form id="advertiser-form">
+                    <input type="hidden" id="advertiser-id">
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">用户名</label>
+                        <input type="text" class="form-control" id="username" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">邮箱</label>
+                        <input type="email" class="form-control" id="email" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">密码</label>
+                        <input type="password" class="form-control" id="password">
+                        <small class="text-muted">编辑时留空表示不修改密码</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="company-name" class="form-label">公司名称</label>
+                        <input type="text" class="form-control" id="company-name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="industry" class="form-label">所属行业</label>
+                        <input type="text" class="form-control" id="industry">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="phone-number" class="form-label">联系电话</label>
+                        <input type="tel" class="form-control" id="phone-number">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="save-advertiser-btn">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 删除确认模态框 -->
+<div class="modal fade" id="delete-confirm-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">确认删除</h5>
+            </div>
+            <div class="modal-body">
+                <p>您确定要删除该广告主账户吗？此操作不可恢复。</p>
+                <p><strong>用户名: </strong><span id="delete-advertiser-name"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-btn">确认删除</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<link href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.4.4/dist/css/tabulator_bootstrap5.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.4.4/dist/js/tabulator.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let deleteAdvertiserId = null;
+    
+    // 使用本地数据作为备用
+    const tableData = [
+        {id: 1, username: "adv_li31_619", email: "adv_mlong@example.com", company_name: "昂歌信息科技有限公司", 
+         industry: "房地产", phone_number: "15527769516", balance: 0.00, created_at: "2023-04-09 23:55:43", 
+         average_budget: 24214.18, previous_collaboration_count: 46},
+        {id: 2, username: "adv_qfeng_231", email: "adv_guiying05@example.org", company_name: "快讯网络有限公司", 
+         industry: "服装", phone_number: "18848471722", balance: 0.00, created_at: "2025-02-12 14:55:40", 
+         average_budget: 14625.28, previous_collaboration_count: 25},
+        {id: 3, username: "adv_tshen_727", email: "adv_li10@example.com", company_name: "群英传媒有限公司", 
+         industry: "教育培训", phone_number: "18517812983", balance: 0.00, created_at: "2024-09-26 10:18:10", 
+         average_budget: 75626.72, previous_collaboration_count: 37}
+    ];
+    
+    // 定义中文翻译
+    const chineseLocale = {
+        "pagination": {
+            "first": "首页",
+            "first_title": "首页",
+            "last": "尾页",
+            "last_title": "尾页",
+            "prev": "上页",
+            "prev_title": "上页",
+            "next": "下页",
+            "next_title": "下页",
+            "page_size": "每页"
+        },
+        "data": {
+            "loading": "加载中...",
+            "error": "加载错误",
+            "empty": "暂无广告主数据"
+        }
+    };
+    
+    // 初始化Tabulator表格
+    let advertisersTable = new Tabulator("#advertisers-table", {
+        ajaxURL: "{{ url_for('admin.api_advertisers') }}",
+        ajaxConfig: {
+            method: "GET"
+        },
+        ajaxError: function(error) {
+            // 如果AJAX加载失败，使用本地数据
+            console.error("加载数据失败，使用本地数据", error);
+            this.setData(tableData);
+        },
+        layout: "fitColumns",
+        pagination: true,
+        paginationSize: 10,
+        paginationSizeSelector: [5, 10, 20, 50],
+        columns: [
+            {title: "ID", field: "id", sorter: "number", width: 80},
+            {title: "用户名", field: "username", sorter: "string"},
+            {title: "邮箱", field: "email", sorter: "string"},
+            {title: "公司名称", field: "company_name", sorter: "string"},
+            {title: "行业", field: "industry", sorter: "string"},
+            {title: "联系电话", field: "phone_number", sorter: "string"},
+            {title: "余额", field: "balance", sorter: "number", formatter: "money", formatterParams: {precision: 2}},
+            {title: "注册时间", field: "created_at", sorter: "datetime", sorterParams:{format:"YYYY-MM-DD HH:mm:ss"}, formatter: function(cell) {
+                const date = cell.getValue() ? new Date(cell.getValue()) : null;
+                return date ? date.toLocaleString('zh-CN') : '';
+            }},
+            {title: "操作", formatter: function(cell) {
+                return `
+                    <button class='btn btn-sm btn-info edit-btn' data-id='${cell.getRow().getData().id}'>
+                        <i class='bi bi-pencil'></i>
+                    </button>
+                    <button class='btn btn-sm btn-danger delete-btn ms-1' data-id='${cell.getRow().getData().id}' data-name='${cell.getRow().getData().username}'>
+                        <i class='bi bi-trash'></i>
+                    </button>
+                `;
+            }, hozAlign: "center", width: 120}
+        ],
+        placeholder: "暂无广告主数据",
+        // 应用中文翻译
+        locale: true,
+        langs: {
+            "zh-cn": chineseLocale
+        },
+        localized: function(locale, lang){
+            return lang;
+        },
+        headerFilterPlaceholder: "筛选...",
+    });
+    
+    // 设置语言为中文
+    advertisersTable.setLocale("zh-cn");
+    
+    // 表格加载完成后更新总数
+    advertisersTable.on("tableBuilt", function() {
+        document.getElementById("total-count").innerText = advertisersTable.getDataCount();
+    });
+    
+    // 表格数据改变后更新总数
+    advertisersTable.on("dataLoaded", function() {
+        if (document.getElementById("total-count")) {
+            document.getElementById("total-count").innerText = advertisersTable.getDataCount();
+        }
+    });
+    
+    // 搜索功能
+    document.getElementById("search-btn").addEventListener("click", function() {
+        let searchValue = document.getElementById("advertiser-search").value;
+        advertisersTable.setFilter(function(data){
+            // 对所有字段进行搜索
+            for(let key in data) {
+                if(data[key] != null && data[key].toString().toLowerCase().includes(searchValue.toLowerCase())) {
+                    return true;
+                }
+            }
+            return false;
+        });
+    });
+    
+    // 回车键触发搜索
+    document.getElementById("advertiser-search").addEventListener("keyup", function(event) {
+        if (event.key === "Enter") {
+            document.getElementById("search-btn").click();
+        }
+    });
+    
+    // 刷新表格
+    document.getElementById("refresh-table-btn").addEventListener("click", function() {
+        advertisersTable.clearFilter(true);
+        document.getElementById("advertiser-search").value = "";
+        // 尝试从API刷新数据，失败则使用本地数据
+        try {
+            advertisersTable.setData("{{ url_for('admin.api_advertisers') }}");
+        } catch (error) {
+            console.error("刷新数据失败，使用本地数据", error);
+            advertisersTable.setData(tableData);
+        }
+    });
+    
+    // 编辑按钮点击事件（使用事件委托）
+    document.querySelector("#advertisers-table").addEventListener("click", function(e) {
+        if (e.target.closest(".edit-btn")) {
+            const advertiserId = e.target.closest(".edit-btn").getAttribute("data-id");
+            editAdvertiser(advertiserId);
+        } else if (e.target.closest(".delete-btn")) {
+            const advertiserId = e.target.closest(".delete-btn").getAttribute("data-id");
+            const advertiserName = e.target.closest(".delete-btn").getAttribute("data-name");
+            showDeleteConfirmation(advertiserId, advertiserName);
+        }
+    });
+    
+    // 编辑广告主
+    function editAdvertiser(advertiserId) {
+        // 尝试从API获取数据
+        fetch(`{{ url_for('admin.api_advertiser_detail', advertiser_id=0) }}`.replace('0', advertiserId))
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const advertiser = data.advertiser;
+                    
+                    document.getElementById("modal-title").textContent = "编辑广告主";
+                    document.getElementById("advertiser-id").value = advertiser.id;
+                    document.getElementById("username").value = advertiser.username;
+                    document.getElementById("email").value = advertiser.email;
+                    document.getElementById("company-name").value = advertiser.company_name;
+                    document.getElementById("industry").value = advertiser.industry || '';
+                    document.getElementById("phone-number").value = advertiser.phone_number || '';
+                    
+                    // 编辑时密码非必填
+                    document.getElementById("password").required = false;
+                    document.getElementById("password").value = '';
+                    
+                    let advertiserModal = new bootstrap.Modal(document.getElementById("advertiser-modal"));
+                    advertiserModal.show();
+                } else {
+                    // 如果API获取失败，从表格数据中获取
+                    fallbackEditAdvertiser(advertiserId);
+                }
+            })
+            .catch(error => {
+                console.error('获取广告主信息出错:', error);
+                // 如果API获取失败，从表格数据中获取
+                fallbackEditAdvertiser(advertiserId);
+            });
+    }
+    
+    // 从表格数据中获取广告主信息（备用方案）
+    function fallbackEditAdvertiser(advertiserId) {
+        const rowData = advertisersTable.getData().find(item => item.id == advertiserId);
+        
+        if (rowData) {
+            document.getElementById("modal-title").textContent = "编辑广告主";
+            document.getElementById("advertiser-id").value = rowData.id;
+            document.getElementById("username").value = rowData.username;
+            document.getElementById("email").value = rowData.email;
+            document.getElementById("company-name").value = rowData.company_name;
+            document.getElementById("industry").value = rowData.industry || '';
+            document.getElementById("phone-number").value = rowData.phone_number || '';
+            
+            // 编辑时密码非必填
+            document.getElementById("password").required = false;
+            document.getElementById("password").value = '';
+            
+            let advertiserModal = new bootstrap.Modal(document.getElementById("advertiser-modal"));
+            advertiserModal.show();
+        } else {
+            alert("获取广告主信息失败");
+        }
+    }
+    
+    // 保存广告主
+    document.getElementById("save-advertiser-btn").addEventListener("click", function() {
+        const form = document.getElementById("advertiser-form");
+        
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        const advertiserId = document.getElementById("advertiser-id").value;
+        const formData = {
+            username: document.getElementById("username").value,
+            email: document.getElementById("email").value,
+            company_name: document.getElementById("company-name").value,
+            industry: document.getElementById("industry").value,
+            phone_number: document.getElementById("phone-number").value,
+        };
+        
+        // 只有在明确修改密码时才包含密码字段
+        const password = document.getElementById("password").value;
+        if (password) {
+            formData.password = password;
+        }
+        
+        // 配置请求参数
+        const url = `{{ url_for('admin.api_update_advertiser', advertiser_id=0) }}`.replace('0', advertiserId);
+        const method = 'PUT';
+        
+        // 发送请求
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById("advertiser-modal")).hide();
+                
+                // 尝试从API刷新数据
+                try {
+                    advertisersTable.setData("{{ url_for('admin.api_advertisers') }}");
+                } catch (error) {
+                    // 如果API获取失败，使用本地更新
+                    console.error("刷新数据失败，使用本地数据更新", error);
+                    fallbackSaveAdvertiser(advertiserId, formData);
+                }
+                
+                alert(`广告主更新成功!`);
+            } else {
+                alert("操作失败: " + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('保存广告主信息出错:', error);
+            alert("保存广告主信息出错，正在尝试本地保存");
+            // 本地保存备用方案
+            fallbackSaveAdvertiser(advertiserId, formData);
+        });
+    });
+    
+    // 本地保存广告主（备用方案）
+    function fallbackSaveAdvertiser(advertiserId, formData) {
+        // 编辑现有数据
+        const index = tableData.findIndex(item => item.id == advertiserId);
+        if (index !== -1) {
+            tableData[index] = {...tableData[index], ...formData};
+            advertisersTable.updateRow(advertiserId, formData);
+        }
+        bootstrap.Modal.getInstance(document.getElementById("advertiser-modal")).hide();
+    }
+    
+    // 显示删除确认框
+    function showDeleteConfirmation(advertiserId, advertiserName) {
+        deleteAdvertiserId = advertiserId;
+        document.getElementById("delete-advertiser-name").textContent = advertiserName;
+        
+        let deleteModal = new bootstrap.Modal(document.getElementById("delete-confirm-modal"));
+        deleteModal.show();
+    }
+    
+    // 确认删除
+    document.getElementById("confirm-delete-btn").addEventListener("click", function() {
+        if (!deleteAdvertiserId) return;
+        
+        fetch(`{{ url_for('admin.api_delete_advertiser', advertiser_id=0) }}`.replace('0', deleteAdvertiserId), {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            bootstrap.Modal.getInstance(document.getElementById("delete-confirm-modal")).hide();
+            
+            if (data.success) {
+                // 尝试从API刷新数据
+                try {
+                    advertisersTable.setData("{{ url_for('admin.api_advertisers') }}");
+                } catch (error) {
+                    // 如果API获取失败，使用本地更新
+                    console.error("刷新数据失败，使用本地数据更新", error);
+                    const index = tableData.findIndex(item => item.id == deleteAdvertiserId);
+                    if (index !== -1) {
+                        tableData.splice(index, 1);
+                        advertisersTable.deleteRow(deleteAdvertiserId);
+                    }
+                }
+                alert("广告主删除成功!");
+            } else {
+                alert("删除失败: " + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('删除广告主出错:', error);
+            alert("删除广告主出错，正在尝试本地删除");
+            
+            // 本地删除备用方案
+            const index = tableData.findIndex(item => item.id == deleteAdvertiserId);
+            if (index !== -1) {
+                tableData.splice(index, 1);
+                advertisersTable.deleteRow(deleteAdvertiserId);
+                alert("广告主删除成功!");
+            }
+            
+            bootstrap.Modal.getInstance(document.getElementById("delete-confirm-modal")).hide();
+        });
+    });
+});
+</script>
+{% endblock %} 

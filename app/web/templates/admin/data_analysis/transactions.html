@@ -1,0 +1,495 @@
+{% extends "admin/data_analysis/base.html" %}
+
+{% block title %}管理员 - 交易分析{% endblock %}
+
+{% set active_tab = 'transactions' %}
+
+{% block tab_content %}
+<div class="container-fluid px-4 py-3">
+    <!-- 顶部概览卡片 -->
+    <div class="row mb-4">
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="profile-inner-card">
+                <div class="profile-inner-card-header">
+                    <div class="profile-inner-card-icon" style="background: linear-gradient(135deg, #4b6cb7, #182848);">
+                        <i class="bi bi-credit-card"></i>
+                    </div>
+                    <h5 class="profile-inner-card-title">广告主交易总数</h5>
+                </div>
+                <div class="profile-inner-card-content">
+                    <div class="profile-stat-value" id="advertiser-transaction-count">0</div>
+                    <div class="profile-stat-label">笔交易</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="profile-inner-card">
+                <div class="profile-inner-card-header">
+                    <div class="profile-inner-card-icon" style="background: linear-gradient(135deg, #11998e, #38ef7d);">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                    <h5 class="profile-inner-card-title">广告主交易总额</h5>
+                </div>
+                <div class="profile-inner-card-content">
+                    <div class="profile-stat-value" id="advertiser-transaction-amount">¥0.00</div>
+                    <div class="profile-stat-label">总交易金额</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="profile-inner-card">
+                <div class="profile-inner-card-header">
+                    <div class="profile-inner-card-icon" style="background: linear-gradient(135deg, #fc5c7d, #6a82fb);">
+                        <i class="bi bi-credit-card"></i>
+                    </div>
+                    <h5 class="profile-inner-card-title">合作者交易总数</h5>
+                </div>
+                <div class="profile-inner-card-content">
+                    <div class="profile-stat-value" id="collaborator-transaction-count">0</div>
+                    <div class="profile-stat-label">笔交易</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3 mb-3">
+            <div class="profile-inner-card">
+                <div class="profile-inner-card-header">
+                    <div class="profile-inner-card-icon" style="background: linear-gradient(135deg, #f857a6, #ff5858);">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                    <h5 class="profile-inner-card-title">合作者交易总额</h5>
+                </div>
+                <div class="profile-inner-card-content">
+                    <div class="profile-stat-value" id="collaborator-transaction-amount">¥0.00</div>
+                    <div class="profile-stat-label">总交易金额</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- 左侧图表 - 交易趋势 -->
+        <div class="col-lg-6 mb-4">
+            <div class="profile-info-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>月度交易趋势</span>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-light active" data-period="6">近6个月</button>
+                        <button type="button" class="btn btn-outline-light" data-period="12">近1年</button>
+                    </div>
+                </div>
+                <div class="card-body" style="height: 400px; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="transactions-trend-chart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右侧图表 - 收支比例 -->
+        <div class="col-lg-6 mb-4">
+            <div class="profile-info-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>收支比例分析</span>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-light active" data-type="advertiser">广告主</button>
+                        <button type="button" class="btn btn-outline-light" data-type="collaborator">合作者</button>
+                    </div>
+                </div>
+                <div class="card-body" style="height: 400px; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="income-expense-chart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- 左侧图表 - 交易用户分布 -->
+        <div class="col-lg-6 mb-4">
+            <div class="profile-info-card">
+                <div class="card-header">交易用户分布</div>
+                <div class="card-body" style="height: 400px; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="transaction-user-chart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右侧图表 - 交易金额分布 -->
+        <div class="col-lg-6 mb-4">
+            <div class="profile-info-card">
+                <div class="card-header">交易金额分布</div>
+                <div class="card-body" style="height: 400px; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="transaction-amount-chart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        console.log('开始加载交易数据分析页面');
+        
+        // 获取交易统计数据
+        console.log('请求交易统计数据: /admin/api/transactions/stats');
+        const statsResponse = await fetch('/admin/api/transactions/stats');
+        if (!statsResponse.ok) {
+            throw new Error(`统计数据请求失败: ${statsResponse.status} ${statsResponse.statusText}`);
+        }
+        const statsData = await statsResponse.json();
+        console.log('交易统计数据:', statsData);
+        
+        if (statsData.success) {
+            // 更新顶部统计卡片
+            updateStatsCards(statsData.data);
+        }
+        
+        // 获取交易趋势数据
+        console.log('请求交易趋势数据: /admin/api/transactions/trend?months=6');
+        const trendResponse = await fetch('/admin/api/transactions/trend?months=6');
+        if (!trendResponse.ok) {
+            throw new Error(`趋势数据请求失败: ${trendResponse.status} ${trendResponse.statusText}`);
+        }
+        const trendData = await trendResponse.json();
+        console.log('交易趋势数据:', trendData);
+        
+        if (trendData.success) {
+            // 生成趋势图表
+            generateTransactionTrendChart(trendData.data);
+        }
+        
+        // 获取广告主收支比例数据
+        console.log('请求收支比例数据: /admin/api/transactions/income_expense?type=advertiser');
+        const incomeExpenseResponse = await fetch('/admin/api/transactions/income_expense?type=advertiser');
+        if (!incomeExpenseResponse.ok) {
+            throw new Error(`收支比例数据请求失败: ${incomeExpenseResponse.status} ${incomeExpenseResponse.statusText}`);
+        }
+        const incomeExpenseData = await incomeExpenseResponse.json();
+        console.log('收支比例数据:', incomeExpenseData);
+        
+        if (incomeExpenseData.success) {
+            // 生成收支比例图表
+            generateIncomeExpenseChart(incomeExpenseData.data, 'advertiser');
+        }
+        
+        // 获取用户分布数据
+        console.log('请求用户分布数据: /admin/api/transactions/user_distribution');
+        const userDistResponse = await fetch('/admin/api/transactions/user_distribution');
+        if (!userDistResponse.ok) {
+            throw new Error(`用户分布数据请求失败: ${userDistResponse.status} ${userDistResponse.statusText}`);
+        }
+        const userDistData = await userDistResponse.json();
+        console.log('用户分布数据:', userDistData);
+        
+        if (userDistData.success) {
+            // 生成用户分布图表
+            generateTransactionUserChart(userDistData.data);
+        }
+        
+        // 获取金额分布数据
+        console.log('请求金额分布数据: /admin/api/transactions/amount_distribution');
+        const amountDistResponse = await fetch('/admin/api/transactions/amount_distribution');
+        if (!amountDistResponse.ok) {
+            throw new Error(`金额分布数据请求失败: ${amountDistResponse.status} ${amountDistResponse.statusText}`);
+        }
+        const amountDistData = await amountDistResponse.json();
+        console.log('金额分布数据:', amountDistData);
+        
+        if (amountDistData.success) {
+            // 生成金额分布图表
+            generateTransactionAmountChart(amountDistData.data);
+        }
+        
+        // 注册按钮事件 - 交易趋势时间范围切换
+        document.querySelectorAll('[data-period]').forEach(button => {
+            button.addEventListener('click', async function() {
+                const period = parseInt(this.getAttribute('data-period'));
+                // 先移除所有的active类
+                document.querySelectorAll('[data-period]').forEach(btn => btn.classList.remove('active'));
+                // 为当前按钮添加active类
+                this.classList.add('active');
+                
+                // 获取并更新图表
+                console.log(`请求交易趋势数据: /admin/api/transactions/trend?months=${period}`);
+                try {
+                    const response = await fetch(`/admin/api/transactions/trend?months=${period}`);
+                    if (!response.ok) {
+                        throw new Error(`趋势数据请求失败: ${response.status} ${response.statusText}`);
+                    }
+                    const data = await response.json();
+                    console.log('交易趋势数据:', data);
+                    if (data.success) {
+                        generateTransactionTrendChart(data.data);
+                    }
+                } catch (error) {
+                    console.error('获取交易趋势数据失败:', error);
+                }
+            });
+        });
+        
+        // 注册按钮事件 - 收支比例用户类型切换
+        document.querySelectorAll('[data-type]').forEach(button => {
+            button.addEventListener('click', async function() {
+                const type = this.getAttribute('data-type');
+                // 先移除所有的active类
+                document.querySelectorAll('[data-type]').forEach(btn => btn.classList.remove('active'));
+                // 为当前按钮添加active类
+                this.classList.add('active');
+                
+                // 获取并更新图表
+                console.log(`请求收支比例数据: /admin/api/transactions/income_expense?type=${type}`);
+                try {
+                    const response = await fetch(`/admin/api/transactions/income_expense?type=${type}`);
+                    if (!response.ok) {
+                        throw new Error(`收支比例数据请求失败: ${response.status} ${response.statusText}`);
+                    }
+                    const data = await response.json();
+                    console.log('收支比例数据:', data);
+                    if (data.success) {
+                        generateIncomeExpenseChart(data.data, type);
+                    }
+                } catch (error) {
+                    console.error('获取收支比例数据失败:', error);
+                }
+            });
+        });
+    } catch (error) {
+        console.error('获取交易数据失败:', error);
+        // 显示错误信息给用户
+        document.querySelectorAll('.profile-info-card .card-body').forEach(cardBody => {
+            cardBody.innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">加载数据失败</h4>
+                    <p>${error.message}</p>
+                    <hr>
+                    <p class="mb-0">请检查浏览器控制台获取详细错误信息</p>
+                </div>
+            `;
+        });
+    }
+});
+
+function updateStatsCards(stats) {
+    // 更新广告主交易总数
+    document.getElementById('advertiser-transaction-count').textContent = stats.advertiser_count;
+    
+    // 更新广告主交易总额
+    document.getElementById('advertiser-transaction-amount').textContent = '¥' + stats.advertiser_amount.toFixed(2);
+    
+    // 更新合作者交易总数
+    document.getElementById('collaborator-transaction-count').textContent = stats.collaborator_count;
+    
+    // 更新合作者交易总额
+    document.getElementById('collaborator-transaction-amount').textContent = '¥' + stats.collaborator_amount.toFixed(2);
+}
+
+function generateTransactionTrendChart(data) {
+    // 生成图表
+    const ctx = document.getElementById('transactions-trend-chart').getContext('2d');
+    
+    // 销毁旧图表（如果存在）
+    if (window.transactionTrendChart) {
+        window.transactionTrendChart.destroy();
+    }
+    
+    window.transactionTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [
+                {
+                    label: '广告主交易额',
+                    data: data.advertiser_data,
+                    borderColor: '#4b6cb7',
+                    backgroundColor: 'rgba(75, 108, 183, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: '合作者交易额',
+                    data: data.collaborator_data,
+                    borderColor: '#fc5c7d',
+                    backgroundColor: 'rgba(252, 92, 125, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ¥' + context.parsed.y.toFixed(2);
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '¥' + value;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function generateIncomeExpenseChart(data, type) {
+    // 生成图表
+    const ctx = document.getElementById('income-expense-chart').getContext('2d');
+    
+    // 销毁旧图表（如果存在）
+    if (window.incomeExpenseChart) {
+        window.incomeExpenseChart.destroy();
+    }
+    
+    // 设置标题
+    const title = type === 'advertiser' ? '广告主收支比例' : '合作者收支比例';
+    
+    window.incomeExpenseChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['收入', '支出'],
+            datasets: [{
+                data: [data.income, data.expense],
+                backgroundColor: [
+                    'rgba(56, 239, 125, 0.8)',
+                    'rgba(255, 88, 88, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(56, 239, 125, 1)',
+                    'rgba(255, 88, 88, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: title
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = context.raw;
+                            const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                            return context.label + ': ¥' + value.toFixed(2) + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function generateTransactionUserChart(data) {
+    // 生成图表
+    const ctx = document.getElementById('transaction-user-chart').getContext('2d');
+    
+    // 销毁旧图表（如果存在）
+    if (window.transactionUserChart) {
+        window.transactionUserChart.destroy();
+    }
+    
+    window.transactionUserChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                data: data.counts,
+                backgroundColor: [
+                    'rgba(75, 108, 183, 0.8)',
+                    'rgba(17, 153, 142, 0.8)',
+                    'rgba(252, 92, 125, 0.8)',
+                    'rgba(248, 87, 166, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(75, 108, 183, 1)',
+                    'rgba(17, 153, 142, 1)',
+                    'rgba(252, 92, 125, 1)',
+                    'rgba(248, 87, 166, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: '用户交易频率分布'
+                }
+            }
+        }
+    });
+}
+
+function generateTransactionAmountChart(data) {
+    // 生成图表
+    const ctx = document.getElementById('transaction-amount-chart').getContext('2d');
+    
+    // 销毁旧图表（如果存在）
+    if (window.transactionAmountChart) {
+        window.transactionAmountChart.destroy();
+    }
+    
+    window.transactionAmountChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: '交易次数',
+                data: data.counts,
+                backgroundColor: 'rgba(75, 108, 183, 0.6)',
+                borderColor: 'rgba(75, 108, 183, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: '交易金额分布'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: '交易次数'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: '金额范围'
+                    }
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}
